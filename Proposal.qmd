@@ -1,7 +1,6 @@
 ---
 title: "Proposal"
 format: html
-# token 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
 ---
 
 ## Quarto

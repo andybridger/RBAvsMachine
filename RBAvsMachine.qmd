@@ -1,11 +1,46 @@
 ---
 title: "RBAvsMachine"
+format: html
 ---
 
-## Quarto
+# R code
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+This sections includes the R code to replicate this paper.
 
-```{r}
-1 + 1
+```{r setup, echo=TRUE, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+#download packages and install if needed
+list.of.packages <- c('data.table', 'tidyverse', 'lubridate', 'readabs', 'readrba')
+new.packages <- list.of.packages[!(list.of.packages 
+      %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+for (p in list.of.packages) {
+library(p, character.only = TRUE)
+}
+```
+
+
+## RBA historical data
+
+Load historical forecast data by the RBA
+
+```{r, echo = TRUE}
+# test
+unemp_forecasts <- rba_forecasts() %>%
+  filter(series == "unemp_rate")
+
+unemp_forecasts %>%
+  ggplot(aes(x = date, 
+             y = value, 
+             group = forecast_date, 
+             col = forecast_date)) +
+  geom_line() +
+  theme_minimal() +
+  labs(title = "Unemployment rate (RBA forecasts)")
+```
+
+```{r, echo = TRUE}
+# test
+unique_ids <- rba_forecasts() %>% distinct(series_desc)
 ```

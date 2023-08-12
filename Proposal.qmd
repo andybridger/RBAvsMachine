@@ -3,17 +3,13 @@ title: "Proposal"
 format: html
 ---
 
-## Quarto
+# Title
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+RBA vs Machine: a comparison (or an evaluation) of Reserve Bank of Australia (RBA) forecasts against machine learning forecasts (or methods)
 
-## Running Code
+# Proposal
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
-```{r}
-1 + 1
-```
+Compare RBA forecast performance against machine learning methods. Specifically, we will compare RBA forecast performance against machine learning forecasts made with the same available information for:
 
 You can add options to executable code like this
 

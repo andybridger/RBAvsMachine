@@ -11,11 +11,114 @@ RBA vs Machine: a comparison (or an evaluation) of Reserve Bank of Australia (RB
 
 Compare RBA forecast performance against machine learning methods. Specifically, we will compare RBA forecast performance against machine learning forecasts made with the same available information for:
 
-You can add options to executable code like this
+-   CPI inflation (year-ended)
 
-```{r}
-#| echo: false
-2 * 2
-```
+-   Underlying inflation (year-ended)
 
-The `echo: false` option disables the printing of code (only output is displayed).
+-   GDP (quarterly growth)
+
+-   Unemployment rate (level)
+
+# Data
+
+Historical forecasts from the RBA can be found [here](https://www.rba.gov.au/statistics/historical-forecasts.html) and contains data tables of central estimates of the RBAs historical forecasts for consumer price inflation, underlying inflation, GDP growth and the unemployment rate since 1990.
+
+[Readabs](https://github.com/MattCowgill/readabs) package in R to obtain common indicators for the machine learning methods (e.g. unemployment, job vacancies, GDP, building approvals, etc.). Can also use this package to load data from the ABS.Stat API into R session, with just a few lines of code.
+
+[Readrba](https://github.com/MattCowgill/readrba) package in R to obtain other common indicators not on the ABS (e.g. Westpac consumer sentiment, NAB business confidence etc.). Can also use this package to download the historical statistical tables mentioned above.
+
+[Modellers' Database](https://www.abs.gov.au/statistics/economy/national-accounts/modellers-database/latest-release) from the ABS
+
+[FRED data](https://fred.stlouisfed.org/tags/series?et=&pageID=6&t=australia) for Australia
+
+## Data Issues
+
+### Revisions
+
+One issue I foresee is that we want the machine learning forecast to be based off the information the RBA had at that time. That is, we do not want to use the latest revised data. Some form of the code [here](https://gist.github.com/MattCowgill/b37771c036b09b8e3a49732e1de6227c) may help with this issue.
+
+### Timings
+
+The quarterly timing of forecasts changed in early 2000 from March, June, September December to February, May, August, November.
+
+Another issue to be aware of was the the RBA only began targeting an inflation rate of 2 to 3 per cent in 1993:Q1, therefore, I think our main results should use forecasts beginning in 1993:Q1
+
+### Underlying inflation
+
+The underlying inflation (sometimes called 'core' inflation) indicator has changed over the years.
+
+-   CPI excluding interest and volatiles was used from March 1991 to March 1995.
+
+-   Treasury underlying was used from June 1995 to June 1998.
+
+-   Weighted mean excluding interest and tax, not seasonally adjusted was used from September 1998 to Aug 2005.
+
+-   Trimmed mean, seasonally adjusted was used from November 2005 to November 2006.
+
+-   Average of trimmed mean and weighted mean, seasonally adjusted was used from February 2007 to May 2009.
+
+-   Trimmed mean, seasonally adjusted was used from August 2009 to February 2022.
+
+# Relevant papers
+
+## Machine learning
+
+[Forecasting with many predictors using Bayesian additive regression trees](https://onlinelibrary.wiley.com/doi/abs/10.1002/for.2587) - Pruser (2019) provides a forecasting comparison between the Bart, the Lasso approach and the factor approach using data set consisting of 123 quarterly US macroeconomic time series from the St. Louis Fed FRED database. Specifically, Prüser (2019) compares the different approaches for nine key macroeconomic variables of interest for government budget planning, central bank policy making and business decisions.
+
+## RBA data and forecasts
+
+Detailed explanatory notes on the data can be found in [Appendix B](https://www.rba.gov.au/publications/rdp/2012/pdf/rdp2012-07.pdf#page=38 "Link, opening in a new window, to PDF file.") of Tulip and Wallace (2012), Estimates of Uncertainty around the RBA's Forecasts, RBA Research Discussion Paper, RDP2012-07. There research found the RBA forecasts have substantial explanatory power for the inflation rate but not for GDP growth.
+
+[Box C: What explains recent inflation forecast errors?](https://www.rba.gov.au/publications/smp/2022/nov/box-c-what-explains-recent-inflation-forecast-errors.html)
+
+[Review of the Reserve Bank of Australia](https://rbareview.gov.au/final-report)
+
+# Method
+
+## Machine learning methods
+
+-   Factor
+
+-   Lasso
+
+-   Random Forest
+
+-   Bart
+
+-   Bayesian VARs
+
+-   Dynamic factor models
+
+## Evaluation
+
+### Point forecasts
+
+To evaluate point forecasts, I propose we use:
+
+-   Mean squared forecast error (MSE)
+
+-   Mean absolute forecast error (MAE)
+
+-   Root mean squared error (RSME)
+
+These two measures only evaluate the point estimates and ignore the rest of the predictive distribution.
+
+### Predictive density (CI)
+
+Could use predictive likelihood (PL) to evaluate the performance of the entire predictive density as in the Pruser paper.
+
+If we can find distribution forecasts (e.g. 95% CI ranges), then we can use the sum of log-predictive likelihoods (PL) to evaluate the density forecast performance.
+
+We can estimate confidence intervals around RBA forecasts based of this [paper](https://www.rba.gov.au/publications/rdp/2012/pdf/rdp2012-07.pdf). Code to estimate confidence intervals are [here](https://gist.github.com/MattCowgill/2cc25392721ea5abd9daa810f91395b0).
+
+Cool literature on uncertainty quantification in machine learning which hasn't really made its way into the econ time series literature.
+
+Another method could be [here.](https://www.nixtla.io/?fbclid=IwAR3O0N_ShRuTR1tgi7spy9xbu_B-BfpfQ_Jf8jKXxJcG7Y1fpxWgtrh_12U#tgpt)
+
+# Other code and useful links
+
+Code to evaluate RBA unemployment forecast errors [here](https://gist.github.com/MattCowgill/2cc25392721ea5abd9daa810f91395b0).
+
+Unemployment revisions code [here](https://gist.github.com/MattCowgill/b37771c036b09b8e3a49732e1de6227c).
+
+Useful code [here](https://gist.github.com/MattCowgill/2581fe1ff1c417690921da07751bdc17).

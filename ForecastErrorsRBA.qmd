@@ -1,0 +1,509 @@
+---
+title: "ForecastErrorsRBA"
+format: html
+---
+
+# R code
+
+This sections includes the R code to replicate this paper.
+
+First, we need to download and install the packages required.
+
+```{r setup, echo=TRUE, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+#download packages and install if needed
+list.of.packages <- c('data.table', 'tidyverse', 'lubridate', 'readabs', 'readrba', 'tsibble', 'ggridges', 'modelr', 'yardstick')
+new.packages <- list.of.packages[!(list.of.packages 
+      %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+for (p in list.of.packages) {
+library(p, character.only = TRUE)
+}
+```
+
+# Issues
+
+1. The double black line at the end of all the spaghetti charts - need to find out what is going on there. I think it is because the forecast period changes so sometimes the line skips a quarter and goes across to make it look like more lines. I think a solution could be to use unique dates for the second line.
+2. Underlying inflation forecasts have changed throughout the years - should I add to the data series? We can easily add the equivalent data but then won't we run into issues with the Machine learning models (that is, they will be trying to learn different indicators). Is there a way to see how similar or different they are? Like a statistical test of some sorts.
+3. (SOLVED) Change charts to show the end of the forecast period and not stop at the end of the actual series.
+
+## Find data
+
+```{r, echo = TRUE}
+# Load in RBA forecast data
+unique_ids <- rba_forecasts() %>% distinct(series)
+# df_rbaforecasts <- rba_forecasts() %>%
+#  filter(series == c("cpi_annual_inflation", "underlying_annual_inflation", "unemp_rate", "gdp_change"))
+
+# Load in actual data
+
+# Use browse_rba_table or browse_rba_series to identify appropriate series 
+# browse <- browse_rba_series("inflation")
+
+# Ones to test
+# GCPIAGYP = Year-ended inflation that is, Consumer price index; Year-ended change (in per cent)
+# GCPIOCPMTMYP = Consumer price index; Trimmed mean; Year-ended change (in per cent)
+# GLFSURSA = Seasonally adjusted unemployment rate; monthly frequency
+# GGDPCVGDP = Gross domestic product (GDP); Chain volume
+
+# Back ups
+# GCPIAG = Consumer price index; All groups
+
+#df_actual <- read_rba(series_id = c("GCPIAGYP", "GCPIOCPMTMYP", "GLFSURSA", "GGDPCVGDP")) 
+
+```
+
+### Unemployment data
+
+```{r, echo = TRUE}
+# Load in raw forecast data
+raw_forecasts <- read_forecasts()
+
+# Use read_rba code but could also use read_abs: raw_actual_ur <- read_abs_series("A84423050A")
+raw_actual_ur <- read_rba(series_id="GLFSURSA")
+actual_ur <- raw_actual_ur |>
+  mutate(year_qtr = yearquarter(date)) |>
+  group_by(year_qtr) |>
+  # RBA unemployment forecasts quarterly so therefore need to convert monthly data to quarterly average
+  summarise(actual_value = mean(value))
+
+forecast_ur <- raw_forecasts |>
+  filter(series == "unemp_rate")  |>
+  mutate(forecast_qtr = yearquarter(forecast_date),
+         year_qtr = yearquarter(date)) |>
+  # Calculate horizon periods
+  mutate(horizon = year_qtr - forecast_qtr) |>
+  select(year_qtr,
+         forecast_qtr,
+         forecast_value = value,
+         horizon,
+         date,
+         forecast_date) |>
+  # RBA only began targeting an inflation rate of 2 to 3 per cent in 1993:Q1
+  # Therefore, I only evaluate forecasts from 1993:Q1
+  filter(horizon >= 0,
+         year(forecast_qtr) >= 1993)
+
+ur_errors <- forecast_ur |>
+  left_join(actual_ur,
+            by = "year_qtr") |>
+  filter(!is.na(actual_value)) |>
+  mutate(forecast_error = actual_value - forecast_value)
+
+# Calculate the MSE, RMSE and MAE by horizon period
+eval_ur <- ur_errors %>%
+  group_by(horizon) %>%
+  summarise(
+    mse_value = mean((forecast_value - actual_value)^2),
+    rmse_value = sqrt(mean((forecast_value - actual_value)^2)),
+    mae_value = mean(abs(forecast_value - actual_value))
+  )
+```
+### Unemployment charts
+
+```{r, echo = TRUE}
+# Estimate confidence intervals around RBA forecasts
+# As per https://www.rba.gov.au/publications/rdp/2012/pdf/rdp2012-07.pdf
+
+# Make some charts (density plot)
+ur_errors |>
+  filter(horizon <= 8) |>
+  ggplot(aes(x = forecast_error,
+             y = horizon,
+             fill = factor(horizon),
+             group = horizon)) +
+  ggridges::geom_density_ridges(#fill = "light blue",
+                                quantile_lines = TRUE,
+                                quantiles = 0.5,
+                                rel_min_height = 0.005) +
+  scale_y_continuous(breaks = 0:8) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none") +
+  labs(y = "Forecast horizon (quarters)",
+       x = "Forecast error (percentage points)",
+       title = 'Unemployment rate (RBA forecasts)')
+
+# Make some charts (bar chart)
+ur_errors |>
+  filter(year(year_qtr) >= 1993,
+         horizon <= 8) |>
+  mutate(abs_forecast_error = abs(forecast_error)) |>
+  group_by(horizon) |>
+  summarise(ave_error = list(quantile(abs_forecast_error,
+                                  probs = c(0.5, 0.7, 0.9))),
+            .groups = "keep")  |>
+  unnest(ave_error) |>
+  mutate(q = factor(c("Median",
+               "70th percentile",
+               "90th percentile"),
+               levels = c("Median",
+                          "70th percentile",
+                          "90th percentile"))) |>
+  ggplot(aes(x = horizon,
+             y = ave_error,
+             fill = q)) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  theme_minimal(base_size = 14) +
+  theme(legend.title = element_blank(),
+       legend.position = c(0.8, 0.1)) +
+  labs(x = "Forecast horizon (quarters)",
+       y = "Absolute forecast error (percentage points)",
+       title = 'Unemployment rate (RBA forecasts)')
+
+
+# Spaghetti chart showing RBA forecasts vs actual data for the unemployment rate
+forecast_ur %>%
+     left_join(actual_ur,
+               by = "year_qtr") %>%
+  filter(date >= as.Date("2020-01-01")) %>%
+  ggplot(aes(x = date, 
+             y = forecast_value, 
+             group = forecast_date, 
+             col = forecast_date)) +
+  geom_line() +
+  geom_line(aes(x = date, y = actual_value), color = "black") +  # New line for actual_data
+  theme_minimal() +
+  labs(title = "Unemployment rate (RBA forecasts)") +
+  xlim(as.Date("2020-01-01"), NA)
+```
+### Inflation data
+
+```{r, echo = TRUE}
+# Use read_rba code but could also use read_abs: raw_actual_ur <- read_abs_series("series_id")
+raw_actual_cpi <- read_rba(series_id="GCPIAGYP")
+actual_cpi <- raw_actual_cpi |>
+  mutate(year_qtr = yearquarter(date)) |>
+  rename(actual_value = value) |>
+  select(year_qtr,
+         actual_value)
+
+forecast_cpi <- raw_forecasts |>
+  filter(series == "cpi_annual_inflation")  |>
+  mutate(forecast_qtr = yearquarter(forecast_date),
+         year_qtr = yearquarter(date)) |>
+  # Calculate horizon periods
+  mutate(horizon = year_qtr - forecast_qtr) |>
+  select(year_qtr,
+         forecast_qtr,
+         forecast_value = value,
+         horizon,
+         date,
+         forecast_date) |>
+  # RBA only began targeting an inflation rate of 2 to 3 per cent in 1993:Q1
+  # Therefore, I only evaluate forecasts from 1993:Q1
+  filter(horizon >= 0,
+         year(forecast_qtr) >= 1993)
+
+cpi_errors <- forecast_cpi |>
+  left_join(actual_cpi,
+            by = "year_qtr") |>
+  filter(!is.na(actual_value)) |>
+  mutate(forecast_error = actual_value - forecast_value)
+
+# Calculate the MSE, RMSE and MAE by horizon period
+eval_cpi <- cpi_errors %>%
+  group_by(horizon) %>%
+  summarise(
+    mse_value = mean((forecast_value - actual_value)^2),
+    rmse_value = sqrt(mean((forecast_value - actual_value)^2)),
+    mae_value = mean(abs(forecast_value - actual_value))
+  )
+```
+### Inflation charts
+
+```{r, echo = TRUE}
+# Estimate confidence intervals around RBA forecasts
+# As per https://www.rba.gov.au/publications/rdp/2012/pdf/rdp2012-07.pdf
+
+# Make some charts (density plot)
+cpi_errors |>
+  filter(horizon <= 8) |>
+  ggplot(aes(x = forecast_error,
+             y = horizon,
+             fill = factor(horizon),
+             group = horizon)) +
+  ggridges::geom_density_ridges(#fill = "light blue",
+                                quantile_lines = TRUE,
+                                quantiles = 0.5,
+                                rel_min_height = 0.005) +
+  scale_y_continuous(breaks = 0:8) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none") +
+  labs(y = "Forecast horizon (quarters)",
+       x = "Forecast error (percentage points)",
+       title = 'CPI (RBA forecasts)')
+
+# Make some charts (bar chart)
+cpi_errors |>
+  filter(year(year_qtr) >= 1993,
+         horizon <= 8) |>
+  mutate(abs_forecast_error = abs(forecast_error)) |>
+  group_by(horizon) |>
+  summarise(ave_error = list(quantile(abs_forecast_error,
+                                  probs = c(0.5, 0.7, 0.9))),
+            .groups = "keep")  |>
+  unnest(ave_error) |>
+  mutate(q = factor(c("Median",
+               "70th percentile",
+               "90th percentile"),
+               levels = c("Median",
+                          "70th percentile",
+                          "90th percentile"))) |>
+  ggplot(aes(x = horizon,
+             y = ave_error,
+             fill = q)) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  theme_minimal(base_size = 14) +
+  theme(legend.title = element_blank(),
+       legend.position = c(0.8, 0.1)) +
+  labs(x = "Forecast horizon (quarters)",
+       y = "Absolute forecast error (percentage points)",
+       title = 'CPI (RBA forecasts)')
+
+
+# Spaghetti chart showing RBA forecasts vs actual data for the inflation rate (CPI)
+forecast_cpi %>%
+     left_join(actual_cpi,
+               by = "year_qtr") %>%
+  filter(date >= as.Date("2015-01-01")) %>%
+  ggplot(aes(x = date, 
+             y = forecast_value, 
+             group = forecast_date, 
+             col = forecast_date)) +
+  geom_line() +
+  geom_line(aes(x = date, y = actual_value), color = "black") +  # New line for actual_data
+  theme_minimal() +
+  labs(title = "CPI (RBA forecasts)") +
+  xlim(as.Date("2015-01-01"), NA)
+```
+### Underlying inflation data
+
+```{r, echo = TRUE}
+# Use read_rba code but could also use read_abs: raw_actual_ur <- read_abs_series("series_id")
+raw_actual_tm <- read_rba(series_id="GCPIOCPMTMYP")
+actual_tm <- raw_actual_tm |>
+  mutate(year_qtr = yearquarter(date)) |>
+  rename(actual_value = value) |>
+    select(year_qtr,
+          actual_value)
+
+forecast_tm <- raw_forecasts |>
+  filter(series == "underlying_annual_inflation")  |>
+  mutate(forecast_qtr = yearquarter(forecast_date),
+         year_qtr = yearquarter(date)) |>
+  # Calculate horizon periods
+  mutate(horizon = year_qtr - forecast_qtr) |>
+  select(year_qtr,
+         forecast_qtr,
+         forecast_value = value,
+         horizon,
+         date,
+         forecast_date) |>
+  # RBA only began targeting an inflation rate of 2 to 3 per cent in 1993:Q1
+  # Therefore, I only evaluate forecasts from 1993:Q1
+  filter(horizon >= 0,
+         forecast_date >= as.Date("2009-08-01"))
+
+tm_errors <- forecast_tm |>
+  left_join(actual_tm,
+            by = "year_qtr") |>
+  filter(!is.na(actual_value)) |>
+  mutate(forecast_error = actual_value - forecast_value)
+
+# Calculate the MSE, RMSE and MAE by horizon period
+eval_tm <- tm_errors %>%
+  group_by(horizon) %>%
+  summarise(
+    mse_value = mean((forecast_value - actual_value)^2),
+    rmse_value = sqrt(mean((forecast_value - actual_value)^2)),
+    mae_value = mean(abs(forecast_value - actual_value))
+  )
+```
+
+### Underlying inflation charts
+
+```{r, echo = TRUE}
+# Estimate confidence intervals around RBA forecasts
+# As per https://www.rba.gov.au/publications/rdp/2012/pdf/rdp2012-07.pdf
+
+# Make some charts (density plot)
+tm_errors |>
+  filter(horizon <= 8) |>
+  ggplot(aes(x = forecast_error,
+             y = horizon,
+             fill = factor(horizon),
+             group = horizon)) +
+  ggridges::geom_density_ridges(#fill = "light blue",
+                                quantile_lines = TRUE,
+                                quantiles = 0.5,
+                                rel_min_height = 0.005) +
+  scale_y_continuous(breaks = 0:8) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none") +
+  labs(y = "Forecast horizon (quarters)",
+       x = "Forecast error (percentage points)",
+       title = 'Underlying inflation (RBA forecasts)')
+
+# Make some charts (bar chart)
+tm_errors |>
+  filter(year(year_qtr) >= 1993,
+         horizon <= 8) |>
+  mutate(abs_forecast_error = abs(forecast_error)) |>
+  group_by(horizon) |>
+  summarise(ave_error = list(quantile(abs_forecast_error,
+                                  probs = c(0.5, 0.7, 0.9))),
+            .groups = "keep")  |>
+  unnest(ave_error) |>
+  mutate(q = factor(c("Median",
+               "70th percentile",
+               "90th percentile"),
+               levels = c("Median",
+                          "70th percentile",
+                          "90th percentile"))) |>
+  ggplot(aes(x = horizon,
+             y = ave_error,
+             fill = q)) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  theme_minimal(base_size = 14) +
+  theme(legend.title = element_blank(),
+       legend.position = c(0.8, 0.1)) +
+  labs(x = "Forecast horizon (quarters)",
+       y = "Absolute forecast error (percentage points)",
+       title = 'Underlying inflation (RBA forecasts)')
+
+
+# Spaghetti chart showing RBA forecasts vs actual data for trimmed mean inflation
+forecast_tm %>%
+     left_join(actual_tm,
+               by = "year_qtr") %>%
+  filter(date >= as.Date("2015-01-01")) %>%
+  ggplot(aes(x = date, 
+             y = forecast_value, 
+             group = forecast_date, 
+             col = forecast_date)) +
+  geom_line() +
+  geom_line(aes(x = date, y = actual_value), color = "black") +  # New line for actual_data
+  theme_minimal() +
+  labs(title = "Underlying inflation (RBA forecasts)") +
+  xlim(as.Date("2015-01-01"), NA)
+```
+
+### GDP data
+
+```{r, echo = TRUE}
+# Use read_rba code but could also use read_abs: raw_actual_ur <- read_abs_series("series_id")
+raw_actual_gdp <- read_rba(series_id="GGDPCVGDP")
+actual_gdp <- raw_actual_gdp |>
+  mutate(year_qtr = yearquarter(date)) |>
+  arrange(date) |>
+  mutate(quarterly_change = 100 * (value / lag(value, 1) - 1)) |>
+  rename(actual_value = quarterly_change) |>
+    select(year_qtr,
+          actual_value)
+
+forecast_gdp <- raw_forecasts |>
+  filter(series == "gdp_change")  |>
+  mutate(forecast_qtr = yearquarter(forecast_date),
+         year_qtr = yearquarter(date)) |>
+  # Calculate horizon periods
+  mutate(horizon = year_qtr - forecast_qtr) |>
+  select(year_qtr,
+         forecast_qtr,
+         forecast_value = value,
+         horizon,
+         date,
+         forecast_date) |>
+  # RBA only began targeting an inflation rate of 2 to 3 per cent in 1993:Q1
+  # Therefore, I only evaluate forecasts from 1993:Q1
+  filter(horizon >= 0,
+         year(forecast_qtr) >= 1993)
+
+gdp_errors <- forecast_gdp |>
+  left_join(actual_gdp,
+            by = "year_qtr") |>
+  filter(!is.na(actual_value)) |>
+  mutate(forecast_error = actual_value - forecast_value)
+
+# Calculate the MSE, RMSE and MAE by horizon period
+eval_gdp <- gdp_errors %>%
+  group_by(horizon) %>%
+  summarise(
+    mse_value = mean((forecast_value - actual_value)^2),
+    rmse_value = sqrt(mean((forecast_value - actual_value)^2)),
+    mae_value = mean(abs(forecast_value - actual_value))
+  )
+```
+
+### GDP charts
+
+```{r, echo = TRUE}
+# Estimate confidence intervals around RBA forecasts
+# As per https://www.rba.gov.au/publications/rdp/2012/pdf/rdp2012-07.pdf
+
+# Make some charts (density plot)
+gdp_errors |>
+  filter(horizon <= 8) |>
+  ggplot(aes(x = forecast_error,
+             y = horizon,
+             fill = factor(horizon),
+             group = horizon)) +
+  ggridges::geom_density_ridges(#fill = "light blue",
+                                quantile_lines = TRUE,
+                                quantiles = 0.5,
+                                rel_min_height = 0.005) +
+  scale_y_continuous(breaks = 0:8) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none") +
+  labs(y = "Forecast horizon (quarters)",
+       x = "Forecast error (percentage points)",
+       title = 'GDP (RBA forecasts)')
+
+# Make some charts (bar chart)
+gdp_errors |>
+  filter(year(year_qtr) >= 1993,
+         horizon <= 8) |>
+  mutate(abs_forecast_error = abs(forecast_error)) |>
+  group_by(horizon) |>
+  summarise(ave_error = list(quantile(abs_forecast_error,
+                                  probs = c(0.5, 0.7, 0.9))),
+            .groups = "keep")  |>
+  unnest(ave_error) |>
+  mutate(q = factor(c("Median",
+               "70th percentile",
+               "90th percentile"),
+               levels = c("Median",
+                          "70th percentile",
+                          "90th percentile"))) |>
+  ggplot(aes(x = horizon,
+             y = ave_error,
+             fill = q)) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  theme_minimal(base_size = 14) +
+  theme(legend.title = element_blank(),
+       legend.position = c(0.8, 0.1)) +
+  labs(x = "Forecast horizon (quarters)",
+       y = "Absolute forecast error (percentage points)",
+       title = 'GDP (RBA forecasts)')
+
+
+# Spaghetti chart showing RBA forecasts vs actual data for quarterly GDP growth
+forecast_gdp %>%
+     left_join(actual_gdp,
+               by = "year_qtr") %>%
+  # For shorter graphed period
+  #filter(date >= as.Date("2015-01-01")) %>%
+  ggplot(aes(x = date, 
+             y = forecast_value, 
+             group = forecast_date, 
+             col = forecast_date)) +
+  geom_line() +
+  geom_line(aes(x = date, y = actual_value), color = "black") +  # New line for actual_data
+  theme_minimal() +
+  labs(title = "GDP (RBA forecasts)") 
+  # + xlim(as.Date("2015-01-01"), NA)
+```

@@ -13,7 +13,7 @@ First, we need to download and install the packages required.
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 #download packages and install if needed
-list.of.packages <- c('data.table', 'tidyverse', 'lubridate', 'readabs', 'readrba', 'tsibble', 'ggridges', 'modelr', 'yardstick')
+list.of.packages <- c('data.table', 'tidyverse', 'lubridate', 'readabs', 'readrba', 'tsibble', 'ggridges', 'modelr', 'yardstick', "ggplot", "dplyr")
 new.packages <- list.of.packages[!(list.of.packages 
       %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
@@ -29,6 +29,9 @@ library(p, character.only = TRUE)
 3. (SOLVED) Change charts to show the end of the forecast period and not stop at the end of the actual series.
 
 ## Find data
+
+
+
 
 ```{r, echo = TRUE}
 # Load in RBA forecast data

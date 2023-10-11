@@ -111,7 +111,7 @@ If we can find distribution forecasts (e.g. 95% CI ranges), then we can use the 
 
 We can estimate confidence intervals around RBA forecasts based of this [paper](https://www.rba.gov.au/publications/rdp/2012/pdf/rdp2012-07.pdf). Code to estimate confidence intervals are [here](https://gist.github.com/MattCowgill/2cc25392721ea5abd9daa810f91395b0).
 
-Cool literature on uncertainty quantification in machine learning which hasn't really made its way into the econ time series literature.
+Cool literature on uncertainty quantification in machine learning which hasn't really made its way into the econ time series literature. Conformal Prediction.
 
 Another method could be [here.](https://www.nixtla.io/?fbclid=IwAR3O0N_ShRuTR1tgi7spy9xbu_B-BfpfQ_Jf8jKXxJcG7Y1fpxWgtrh_12U#tgpt)
 

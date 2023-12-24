@@ -571,6 +571,6 @@ saveRDS(df_data, file = "~/Desktop/R/RBAvsMachine/df_data.rds")
 
 # Further questions
 1. Can and should we include RBA forecasts into the data?
-2. We need to organise the data for each meeting. E.g. what data is available at what dates? Might need to write some rules for this.
+2. We need to organise the data for each meeting. E.g. what data is available at what dates? Might need to write some rules for this. ef
 
 

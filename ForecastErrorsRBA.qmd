@@ -25,7 +25,9 @@ library(p, character.only = TRUE)
 # Issues
 
 1. The double black line at the end of all the spaghetti charts - need to find out what is going on there. I think it is because the forecast period changes so sometimes the line skips a quarter and goes across to make it look like more lines. I think a solution could be to use unique dates for the second line.
+
 2. Underlying inflation forecasts have changed throughout the years - should I add to the data series? We can easily add the equivalent data but then won't we run into issues with the Machine learning models (that is, they will be trying to learn different indicators). Is there a way to see how similar or different they are? Like a statistical test of some sorts.
+
 3. (SOLVED) Change charts to show the end of the forecast period and not stop at the end of the actual series.
 
 ## Find data
@@ -509,4 +511,29 @@ forecast_gdp %>%
   theme_minimal() +
   labs(title = "GDP (RBA forecasts)") 
   # + xlim(as.Date("2015-01-01"), NA)
+```
+
+# Try other code
+```{r, echo = TRUE}
+get_ur <- function(release_date = "latest",
+                   series_id = "A84423050A") {
+  raw <- read_abs_series(series_id = series_id,
+                  release_date = release_date) |> 
+    select(date, series_id, value)
+  
+  if (release_date == "latest") {
+    raw |> 
+      mutate(release_date = max(date))
+  } else {
+    raw |> 
+      mutate(release_date = ymd(release_date))
+  }
+}
+
+# Specify the series_id
+series_id <- "A84423050A"
+
+# Use get_series_info function to get information about the series
+series_info <- get_series_info(series_id)
+
 ```

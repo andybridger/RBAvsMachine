@@ -1,0 +1,576 @@
+---
+title: "DataPull"
+format: html
+---
+
+### Load packages
+
+```{r setup, echo=TRUE, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+#download packages and install if needed
+list.of.packages <- c('data.table', 'tidyverse', 'lubridate', 'readabs', 'readrba', 'tsibble', 'ggridges', 'modelr', 'yardstick', 'yahoofinancer', 'fredr')
+new.packages <- list.of.packages[!(list.of.packages 
+      %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+for (p in list.of.packages) {
+library(p, character.only = TRUE)
+}
+```
+
+## Read ABS
+
+```{r abs, echo = TRUE}
+# Load in ABS data
+df_abs1 <- read_abs(series_id = c("A2304402X", "A2304404C", "A3606056V", "A2304408L", "A2304410X", "A2304412C", "A2304414J", "A2304416L", "A2304418T", "A2304420C", "A2304422J", "A2304424L", "A2323382F", "A2304428W", "A2304190J", "A2304192L", "A3606058X", "A2304196W", "A2304198A", "A2304200A", "A2433068T", "A2433071F", "A2302586T", "A2302587V", "A2302588W", "A2302589X", "A2302590J", "A2302591K", "A2302592L", "A2302593R", "A2302594T", "A2305148W", "A2305146T", "A2302597X", "A2302598A", "A2302599C", "A2302600A", "A2302601C", "A2302602F", "A2302603J", "A2302604K", "A2302605L", "A2302606R", "A129552324A", "A2302607T", "A2302608V", "A129552325C", "A85222698X", "A85222699A", "A85125298V", "A85125299W", "A124830484V", "A124830485W", "A124830486X", "A124830487A", "A85125310X", "A85125311A", "A85125312C", "A85125313F", "A85251203A", "A85251204C", "A85251205F", "A85251206J", "A2303355A", "A2303357F", "A2303359K", "A2323372A", "A2303363A", "A2303365F", "A2303367K", "A2303369R", "A2298712J", "A2303373F", "A2303375K", "A2303377R", "A2303379V", "A2303381F", "A2303383K", "A2716600A", "A2716601C", "A2716610F", "A2298671X", "A2304076C", "A2304077F", "A2304078J", "A2304079K", "A2304080V", "A2304081W", "A2304082X", "A2304096L", "A2304097R", "A2304098T", "A2304099V", "A2304086J", "A2304087K", "A2304088L", "A2304089R", "A2304083A", "A2304084C", "A2304085F", "A2716197L", "A2716199T", "A2304092C", "A2304091A", "A2304093F", "A2716198R", "A2304095K", "A2304100T", "A2304101V", "A2304102W", "A2304103X", "A2304104A", "A2304105C", "A2304106F", "A2304107J", "A2304108K", "A2304109L", "A2304110W", "A2304111X", "A2304112A", "A2304113C", "A2304114F", "A2304115J", "A2304116K", "A2303827L", "A2303828R", "A2303829T", "A2303830A", "A2303831C", "A2303832F", "A2303833J", "A2303844R", "A2303845T", "A2303846V", "A2303847W", "A2303835L", "A2303836R", "A2303837T", "A2303834K", "A2716238W"))
+
+df_abs2 <- read_abs(series_id = c( "A2716240J", "A2303840F", "A2303839W", "A2303841J", "A2716239X", "A2303843L", "A2303848X", "A2303849A",
+  "A2303850K", "A2303851L", "A2303852R", "A2303853T", "A2303854V", "A2303855W", "A2303856X", "A2303857A",
+  "A2303858C", "A2303859F", "A2303860R", "A2303861T", "A2303862V", "A2303935W", "A2303936X", "A2303937A",
+  "A2303938C", "A2303939F", "A2303940R", "A2303941T", "A2303711K", "A2303712L", "A2303713R", "A2303714T",
+  "A2303943W", "A2303703K", "A2303704L", "A2303942V", "A2716115W", "A2716117A", "A2303707V", "A2303706T",
+  "A2303708W", "A2716116X", "A2303710J", "A2303715V", "A2303716W", "A2303717X", "A2303718A", "A2303719C",
+  "A2303720L", "A2303721R", "A2303722T", "A2303723V", "A2303724W", "A2303725X", "A2303726A", "A2303727C",
+  "A2303728F", "A2303729J", "A2303730T", "A2303246R", "A2303248V", "A2303250F", "A2303252K", "A2303254R",
+  "A2303256V", "A2303258X", "A2303260K", "A2303262R", "A2303264V", "A2303266X", "A2303268C", "A2303270R",
+  "A2303272V", "A2303274X", "A2303276C", "A2303278J", "A2303280V", "A3531609C", "A3531621V", "A2314865F",
+  "A2325846C", "A3604506F", "A3604509L", "A3604503X", "A2330526L", "A2330571X", "A2330616T", "A2330706W",
+  "A3604398J", "A2330661C", "A2330751J", "A2330796L", "A2332101T", "A2332146W", "A2332191J", "A2332236A",
+  "A2332281L", "A2332326F", "A2332371T", "A2332416K", "A2332461W", "A2332506R", "A2332641F", "A2332686K",
+  "A2332551A", "A3604378X", "A2330841L", "A2325891R", "A2326116V", "A2325936J", "A2325981V", "A2326026R",
+  "A2331111C", "A2326071A", "A2331201J", "A2331246L", "A2331426W", "A2332596F", "A2603039T", "A2603989W",
+  "A2603609J", "A2713846W", "A2713852T", "A2713849C", "A2626979V", "A2627929R", "A2627549L", "A2615009A",
+  "A2615959F", "A2615579C", "A84423043C", "A84423041X", "A84423042A", "A84423054K", "A84423046K", "A84423044F",
+  "A84423045J", "A84423050A", "A84423052F"))
+
+df_abs3 <- read_abs(series_id = c("A84423053J", "A84423047L", "A84423051C", "A85255725J", "A85255726K"))
+
+df_abs <- rbind(df_abs1, df_abs2, df_abs3)
+
+# next check the number of unique IDs to see if everything has been pulled in
+unique_ids <- df_abs %>%
+  distinct(series_id) %>%
+  count()
+
+# should be 284
+# unique_ids = 284
+```
+
+# Read RBA
+
+```{r rba, echo = TRUE}
+# Load in RBA data
+df_rba1 <- read_rba(series_id = c(
+  'GLFOSVT',
+  'GLFOSVPS',
+  'GLFOSVTLF',
+  'GISSRTC',
+  'GISPSDA',
+  'GICWMICS',
+  'GICNBC',
+  'GISPSNBA',
+  'GCONEXP',
+  'GBUSEXP',
+  'GUNIEXPY',
+  'GUNIEXPYY',
+  'GMAREXPY',
+  'GMAREXPYY',
+  'GBONYLD',
+  'GRCPAIAD',
+  'GRCPRCAD',
+  'GRCPNRAD',
+  'GRCPBMAD',
+  'GRCPBCAD',
+  'GRCPAISAD',
+  'GRCPBCSAD',
+  'FOOIRUSFFTRMX',
+  'FOOIRJTCR',
+  'FOOIREARR',
+  'FOOIRUKOBR',
+  'FOOIRCTR',
+  'FOOIRATCR',
+  'FIRMMBAB30',
+  'FIRMMBAB90',
+  'FIRMMBAB180',
+  'FIRMMOIS1',
+  'FIRMMOIS3',
+  'FIRMMOIS6',
+  'FCMYGBAG2',
+  'FCMYGBAG3',
+  'FCMYGBAG5',
+  'FCMYGBAG10',
+  'FILRSBVRT',
+  'FILRSBVOO',
+  'FILRHLBVS',
+  'FILRHLBVD',
+  'FILRHLBVO',
+  'FILRHL3YF',
+  'FILRHLBVSI',
+  'FILRHLBVDI',
+  'FILRHLBVDO',
+  'FILRHL3YFI',
+  'FILRPLRCCS',
+  'FILRPLRCCL',
+  'DGFACHM',
+  'DGFACOHM',
+  'DGFACIHM',
+  'DGFACOPM'
+))
+
+# df_rba_d1 <- read_rba(series_id = c("DGFACBNFM", "DGFACBM","DGFACNFM", "DGFACM", "DGFACNWM"))
+# df_rba2_d2 <- read_rba(series_id = "DLCACSFBS")
+
+# Excluded "DGFACBNFM", "DGFACBM","DGFACNFM", "DGFACM", "DGFACNWM" and "DLCACSFBS" as readrba cannot pull in the data
+
+df_rba2 <- read_rba(series_id = c(
+  'DMACN',
+  'DMATD',
+  'DMAM1N',
+  'DMAODCD',
+  'DMANTD',
+  'DMAM3N',
+  'DMANBPA',
+  'DMABMN',
+  'DMACS',
+  'DMAM1S',
+  'DMAM3S',
+  'DMABMS',
+  'DMAMMB',
+  'DMAMOAFI'
+))
+
+df_rba3 <- read_rba(series_id = c(
+  'FNFTA3M',
+  'FNFYA3M',
+  'FNFSA3M',
+  'FNFCA3M',
+  'FNFTA5M',
+  'FNFYA5M',
+  'FNFSA5M',
+  'FNFCA5M',
+  'FNFTA7M',
+  'FNFYA7M',
+  'FNFSA7M',
+  'FNFCA7M',
+  'FNFTA10M',
+  'FNFYA10M',
+  'FNFSA10M',
+  'FNFCA10M',
+  'FNFNA3M',
+  'FNFNA5M',
+  'FNFNA7M',
+  'FNFNA10M',
+  'FNFNA12M',
+  'FNFTBBB3M',
+  'FNFYBBB3M',
+  'FNFSBBB3M',
+  'FNFCBBB3M',
+  'FNFTBBB5M',
+  'FNFYBBB5M',
+  'FNFSBBB5M',
+  'FNFCBBB5M',
+  'FNFTBBB7M',
+  'FNFYBBB7M',
+  'FNFSBBB7M',
+  'FNFCBBB7M',
+  'FNFTBBB10M',
+  'FNFYBBB10M',
+  'FNFSBBB10M',
+  'FNFCBBB10M',
+  'FNFNBBB3M',
+  'FNFNBBB5M',
+  'FNFNBBB7M',
+  'FNFNBBB10M',
+  'FNFNBBB12M',
+  'FRERTWI',
+  'FRERIWI',
+  'FREREWI',
+  'FXRUSD',
+  'FXRTWI',
+  'FXRCR',
+  'FXRJY',
+  'FXREUR',
+  'FXRSKW',
+  'FXRUKPS',
+  'FXRSD',
+  'FXRIRE',
+  'FXRTB',
+  'FXRNZD',
+  'FXRNTD',
+  'FXRMR',
+  'FXRIR',
+  'FXRVD',
+  'FXRUAED',
+  'FXRPNGK',
+  'FXRHKD',
+  'FXRCD',
+  'FXRSARD',
+  'FXRSARY',
+  'FXRSF',
+  'FXRSK',
+  'FXRPHP',
+  'FXRSDR',
+  'BSPNSHNFD',
+  'BSPNSHNFO',
+  'BSPNSHNFT',
+  'BSPNSHUFAD',
+  'BSPNSHUFAR',
+  'BSPNSHUFAS',
+  'BSPNSHUFAO',
+  'BSPNSHUFAT',
+  'BSPNSHUA',
+  'BSPNSHUL',
+  'BSPNSHUNW',
+  'BSPNSHUDS',
+  'BSPNSHUDSYP',
+  'BSPNSPNFAD',
+  'BSPNSPNFAF',
+  'BSPNSPNFAO',
+  'BSPNSPNFAT',
+  'BSPNSPNLL',
+  'BSPNSPNLB',
+  'BSPNSPNLS',
+  'BSPNSPNLD',
+  'BSPNSPNLO',
+  'BSPNSPNLT',
+  'BHFDA',
+  'BHFHDHA',
+  'BHFDDIT',
+  'BHFDDIH',
+  'BHFDDIO',
+  'BHFADIT',
+  'BHFHDI',
+  'BHFADIFA'
+))
+
+# next check the number of unique IDs to see if everything has been pulled in
+# suscpect some series_ids are missing from readrba
+series_id <- c(
+  'FNFTA3M',
+  'FNFYA3M',
+  'FNFSA3M',
+  'FNFCA3M',
+  'FNFTA5M',
+  'FNFYA5M',
+  'FNFSA5M',
+  'FNFCA5M',
+  'FNFTA7M',
+  'FNFYA7M',
+  'FNFSA7M',
+  'FNFCA7M',
+  'FNFTA10M',
+  'FNFYA10M',
+  'FNFSA10M',
+  'FNFCA10M',
+  'FNFNA3M',
+  'FNFNA5M',
+  'FNFNA7M',
+  'FNFNA10M',
+  'FNFNA12M',
+  'FNFTBBB3M',
+  'FNFYBBB3M',
+  'FNFSBBB3M',
+  'FNFCBBB3M',
+  'FNFTBBB5M',
+  'FNFYBBB5M',
+  'FNFSBBB5M',
+  'FNFCBBB5M',
+  'FNFTBBB7M',
+  'FNFYBBB7M',
+  'FNFSBBB7M',
+  'FNFCBBB7M',
+  'FNFTBBB10M',
+  'FNFYBBB10M',
+  'FNFSBBB10M',
+  'FNFCBBB10M',
+  'FNFNBBB3M',
+  'FNFNBBB5M',
+  'FNFNBBB7M',
+  'FNFNBBB10M',
+  'FNFNBBB12M',
+  'FRERTWI',
+  'FRERIWI',
+  'FREREWI',
+  'FXRUSD',
+  'FXRTWI',
+  'FXRCR',
+  'FXRJY',
+  'FXREUR',
+  'FXRSKW',
+  'FXRUKPS',
+  'FXRSD',
+  'FXRIRE',
+  'FXRTB',
+  'FXRNZD',
+  'FXRNTD',
+  'FXRMR',
+  'FXRIR',
+  'FXRVD',
+  'FXRUAED',
+  'FXRPNGK',
+  'FXRHKD',
+  'FXRCD',
+  'FXRSARD',
+  'FXRSARY',
+  'FXRSF',
+  'FXRSK',
+  'FXRPHP',
+  'FXRSDR',
+  'BSPNSHNFD',
+  'BSPNSHNFO',
+  'BSPNSHNFT',
+  'BSPNSHUFAD',
+  'BSPNSHUFAR',
+  'BSPNSHUFAS',
+  'BSPNSHUFAO',
+  'BSPNSHUFAT',
+  'BSPNSHUA',
+  'BSPNSHUL',
+  'BSPNSHUNW',
+  'BSPNSHUDS',
+  'BSPNSHUDSYP',
+  'BSPNSPNFAD',
+  'BSPNSPNFAF',
+  'BSPNSPNFAO',
+  'BSPNSPNFAT',
+  'BSPNSPNLL',
+  'BSPNSPNLB',
+  'BSPNSPNLS',
+  'BSPNSPNLD',
+  'BSPNSPNLO',
+  'BSPNSPNLT',
+  'BHFDA',
+  'BHFHDHA',
+  'BHFDDIT',
+  'BHFDDIH',
+  'BHFDDIO',
+  'BHFADIT',
+  'BHFHDI',
+  'BHFADIFA'
+)
+
+df<- data.frame(series_id)
+
+# Assuming you have a column named "id" in both dataframes
+unique_ids_df <- unique(df$series_id)
+unique_ids_df_abs1 <- unique(df_rba3$series_id)
+
+missing_ids <- setdiff(unique_ids_df, unique_ids_df_abs1)
+#IDs present in df but not in df_abs1: FNFSA3M FNFCA3M FNFSA5M FNFCA5M FNFSA7M FNFCA7M FNFSA10M FNFCA10M FNFSBBB3M FNFCBBB3M FNFSBBB5M FNFCBBB5M FNFSBBB7M FNFCBBB7M FNFSBBB10M FNFCBBB10M
+
+df_rba <- rbind(df_rba1, df_rba2, df_rba3)
+
+unique_ids <- df_rba2 %>%
+  distinct(series_id) %>%
+  count()
+#rba1 = 54
+#rba2 = 14
+#rba3 = 85
+
+# unique_ids = 153
+# should be 169
+```
+
+# Read Yahoo Finance
+```{r yahoo, echo = TRUE}
+# Data we want is closing price at the end of the month
+
+# AUS ASX200
+asx <- Ticker$new('^AXJO')
+df_asx <- asx$get_history(start = '1990-01-01', end = '2023-12-01', interval = '1mo') %>% 
+  mutate(series_id = '^AXJO') %>% 
+  mutate(series = 'AUS ASX200')
+
+# AUS All Ordinaries
+aord <- Ticker$new('^AORD')
+df_aord <- aord$get_history(start = '1990-01-01', end = '2023-12-01', interval = '1mo') %>% 
+  mutate(series_id = '^AORD') %>% 
+  mutate(series = 'AUS All Ordinaries')
+
+# US S&P 500
+sp <- Ticker$new('^GSPC')
+df_sp <- sp$get_history(start = '1990-01-01', end = '2023-12-01', interval = '1mo') %>% 
+  mutate(series_id = '^GSPC') %>% 
+  mutate(series = 'US S&P 500')
+
+# EU Euronext 100 Index
+eu <- Ticker$new('^N100')
+df_eu <- eu$get_history(start = '1990-01-01', end = '2023-12-01', interval = '1mo') %>% 
+  mutate(series_id = '^N100') %>% 
+  mutate(series = 'EU Euronext 100 Index')
+
+# UK FTSE 100 Index
+ftse <- Ticker$new('^FTSE')
+df_ftse <- ftse$get_history(start = '1990-01-01', end = '2023-12-01', interval = '1mo') %>% 
+  mutate(series_id = '^FTSE') %>% 
+  mutate(series = 'UK FTSE 100 Index')
+
+# Japan Nikkei 225
+nik <- Ticker$new('^N225')
+df_nik <- nik$get_history(start = '1990-01-01', end = '2023-12-01', interval = '1mo') %>% 
+  mutate(series_id = '^N225') %>% 
+  mutate(series = 'Japan Nikkei 225')
+
+# Korea KOSPI Composite Index
+ks <- Ticker$new('^KS11')
+df_ks <- ks$get_history(start = '1990-01-01', end = '2023-12-01', interval = '1mo') %>% 
+  mutate(series_id = '^KS11') %>% 
+  mutate(series = 'Korea KOSPI Composite Index')
+
+# Hong Kong Hang Seng Index
+hk <- Ticker$new('^HSI')
+df_hk <- hk$get_history(start = '1990-01-01', end = '2023-12-01', interval = '1mo') %>% 
+  mutate(series_id = '^HSI') %>% 
+  mutate(series = 'Hong Kong Hang Seng Index')
+
+# Shanghai SSE Composite Index
+sse <- Ticker$new('000001.SS')
+df_sse <- sse$get_history(start = '1990-01-01', end = '2023-12-01', interval = '1mo') %>% 
+  mutate(series_id = '000001.SS') %>% 
+  mutate(series = 'Shanghai SSE Composite Index')
+
+# Gold Gold Feb 24
+gold <- Ticker$new('GC=F')
+df_gold <- gold$get_history(start = '1990-01-01', end = '2023-12-01', interval = '1mo') %>% 
+  mutate(series_id = 'GC=F') %>% 
+  mutate(series = 'Gold price')
+
+# World index MSCI world
+# msci <- Ticker$new('^990100-USD-STRD')
+# df_msci <- msci$get_history(start = '2010-01-01', end = '2023-12-01', interval = '1mo') %>%
+#   mutate(ticker = '^990100-USD-STRD')
+
+df_yahoo <- rbind(df_asx, df_aord, df_sp, df_eu, df_ftse, df_nik, df_ks, df_hk, df_sse, df_gold) %>% 
+  mutate(package = 'yahoofinancer') %>% 
+  mutate(frequency = 'Monthly') %>% 
+  mutate(series_type = 'Original')
+
+```
+
+# Read FRED
+```{r FRED, echo = TRUE}
+
+# Use my API key
+fredr_set_key("493222c4777291b6ef8631077cd167bb")
+
+# Data from Fred includes
+# Global price of Brent Crude
+# Crude Oil Prices: Brent - Europe
+# Spot Crude Oil Price: West Texas Intermediate (WTI)
+# Global price of Iron Ore
+# Global price of Coal, Australia
+
+df_bre <- fredr(
+  series_id = "POILBREUSDM",
+  observation_start = as.Date("1990-01-01"),
+  observation_end = as.Date("2024-01-01"),
+  frequency = "m", # monthly
+  units = "lin" # Levels (No transformation)
+) %>% 
+  mutate(series = 'Global price of Brent Crude')
+
+df_eur <- fredr(
+  series_id = "MCOILBRENTEU",
+  observation_start = as.Date("1990-01-01"),
+  observation_end = as.Date("2024-01-01"),
+  frequency = "m", # monthly
+  units = "lin" # Levels (No transformation)
+) %>% 
+  mutate(series = 'Global price of Brent Crude')
+
+df_wti <- fredr(
+  series_id = "WTISPLC",
+  observation_start = as.Date("1990-01-01"),
+  observation_end = as.Date("2024-01-01"),
+  frequency = "m", # monthly
+  units = "lin" # Levels (No transformation)
+) %>% 
+  mutate(series = 'Spot Crude Oil Price: West Texas Intermediate (WTI)')
+
+df_ore <- fredr(
+  series_id = "PIORECRUSDM",
+  observation_start = as.Date("1990-01-01"),
+  observation_end = as.Date("2024-01-01"),
+  frequency = "m", # monthly
+  units = "lin" # Levels (No transformation)
+) %>% 
+  mutate(series = 'Global price of Iron Ore')
+
+df_coal <- fredr(
+  series_id = "PCOALAUUSDM",
+  observation_start = as.Date("1990-01-01"),
+  observation_end = as.Date("2024-01-01"),
+  frequency = "m", # monthly
+  units = "lin" # Levels (No transformation)
+) %>% 
+  mutate(series = 'Global price of Coal, Australia') 
+
+df_fred <- rbind(df_bre, df_eur, df_wti, df_ore, df_coal) %>% 
+  mutate(package = 'fredr') %>% 
+  mutate(series_type = 'Original') %>% 
+  mutate(frequency = 'Monthly')
+
+```
+
+# Combine data
+```{r combine, echo = TRUE}
+colnames(df_abs)
+colnames(df_rba)
+
+# match for table_title, date, series, value, series_type, frequency, series_id, and unit (although units in RBA data so needs to be renames) 
+# ABS column not in RBA: table_no, sheet_no, data_type, collection_month
+# RBA column not in ABS: source, pub_date, description
+# New column required for what package the data came from (i.e. readabs and readrba)
+
+df_rba_full <- df_rba %>%
+  mutate(table_no = NA,
+         sheet_no = NA,
+         data_type = NA,
+         collection_month = NA,
+         package = 'readrba') %>%
+  rename(unit = units) %>% 
+  select("package", "table_no", "sheet_no", "table_title", "date", "series", "value", "series_type", "data_type", "collection_month", "frequency","series_id", "unit", "source", "pub_date", "description")
+
+df_abs_full <- df_abs %>%
+  mutate(source = NA,
+         pub_date = NA,
+         description = NA,
+         package = 'readabs') %>% 
+  select("package", "table_no", "sheet_no", "table_title", "date", "series", "value", "series_type", "data_type", "collection_month", "frequency","series_id", "unit", "source", "pub_date", "description")
+
+df_data_full <- rbind(df_abs_full, df_rba_full)
+
+# next check the number of unique IDs to see if everything has been pulled in
+unique_ids <- df_data_full %>%
+  distinct(series_id) %>%
+  count()
+
+unique_ids 
+# ABS = 284 + RBA = 153 which totals = 437
+
+# Make data homogenous across ABS, RBA, FRED and Yahoo data
+df_abs <- df_abs_full %>%
+  select("package", "date", "series", "series_id", "series_type", "frequency", "value")
+
+df_rba <- df_rba_full %>%
+  select("package", "date", "series", "series_id", "series_type", "frequency", "value")
+
+df_fred <- df_fred %>%
+  select("package", "date", "series", "series_id", "series_type", "frequency", "value")
+
+df_yahoo <- df_yahoo %>%
+  rename(value = close) %>% 
+  select("package", "date", "series", "series_id", "series_type", "frequency", "value")
+
+
+# Save data with Fred and Yahoo data
+df_data <- rbind(df_abs, df_rba, df_fred, df_yahoo)
+
+saveRDS(df_data, file = "~/Desktop/R/RBAvsMachine/df_data.rds")
+```
+
+# Further questions
+1. Can and should we include RBA forecasts into the data?
+2. We need to organise the data for each meeting. E.g. what data is available at what dates? Might need to write some rules for this.
+
+

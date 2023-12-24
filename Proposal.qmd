@@ -31,6 +31,8 @@ Historical forecasts from the RBA can be found [here](https://www.rba.gov.au/sta
 
 [FRED data](https://fred.stlouisfed.org/tags/series?et=&pageID=6&t=australia) for Australia
 
+Should also look to include oil prices or food prices.
+
 ## Data Issues
 
 ### Revisions

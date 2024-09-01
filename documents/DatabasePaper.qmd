@@ -10,7 +10,11 @@ This sheet provides the structure to the paper.
 
 # Abstract
 
+<<<<<<< HEAD:DatabasePaper.qmd
 This paper describes large-scale Australian macroeconomic databases in the monthly and quarterly frequency. The dataset contains hundred of Australian and international economic indicators observed since YYYY. It is designed to be updated regularly and publicly available with the goal of establishing a convenient starting point for empirical analysis that requires "big data".
+=======
+This paper describes large-scale Australian macroeconomic databases in the monthly and quarterly frequency. The dataset contains hundreds of Australian and international economic indicators observed since YYYY. It is designed to be updated regularly and publicly available with the goal of establishing a convenient starting point for empirical analysis that requires "big data", such as forecasting, nowcasting, and structural analysis.
+>>>>>>> 9319557b5278283df73641b8fd2b407d776f7193:documents/DatabasePaper.qmd
 
 # Key papers:
 
@@ -37,6 +41,12 @@ In this paper we construct a large-scale Canadian macroeconomic database in mont
 
 Early attempts to construct large Canadian macroeconomic datasets are Gosselin and Tkacz (2001) and Galbraith and Tkacz (2007). Boivin et al. (2010) updated and merged data from those previous studies yielding a panel that covered the period 1969 - 2008 and had 348 monthly and 87 quarterly series. Then, Bedock and Stevanovic (2017) constructed a new dataset of 124 monthly variables observed from 1981 to 2012. The selection of series was based on Canadian counterparts of US series in Bernanke et al. (2005) and constrained by availability of StatCan tables. More recently, Sties (2017) has built a large quarterly dataset. Stephen Gordon has also been updating some relevant Canadian indicators1. Our data selection is mainly inspired by McCracken and Ng (2016) when it comes to major groups of economic variables. Given that Canada is a small open economy, we follow previous papers and add more series in the international trade group as one usually finds in the US applications.
 
+<<<<<<< HEAD:DatabasePaper.qmd
+=======
+# Literature
+
+
+>>>>>>> 9319557b5278283df73641b8fd2b407d776f7193:documents/DatabasePaper.qmd
 # Data
 
 asdfs

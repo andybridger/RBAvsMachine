@@ -83,7 +83,7 @@ class TimeSeriesStationarizer:
         print("No transformation achieved stationarity.")
         return self.df_selected[['date', 'value']], "original"
 
-    def stationarize_all(self):
+    def stationarize_all(self, output=False):
         """
         Apply all transformations to the series, test each for stationarity, and print a summary table.
 
@@ -102,11 +102,12 @@ class TimeSeriesStationarizer:
         # Convert the results list to a DataFrame for display
         results_df = pd.DataFrame(results)
 
-        # Print the summary table
-        print("Summary of Stationarity Tests:")
-        print(results_df)
+        if output:
+            # Print the summary table
+            print("Summary of Stationarity Tests:")
+            print(results_df)
 
-        self.plot_series()
+            self.plot_series()
 
         return results_df
 

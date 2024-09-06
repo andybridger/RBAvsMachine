@@ -1,6 +1,7 @@
 ---
 title: "DatabasePaper"
 format: html
+bibliography: references.bib
 ---
 
 This sheet provides the structure to the paper.
@@ -9,24 +10,47 @@ This sheet provides the structure to the paper.
 
 # Abstract
 
+<<<<<<< HEAD:DatabasePaper.qmd
+This paper describes large-scale Australian macroeconomic databases in the monthly and quarterly frequency. The dataset contains hundred of Australian and international economic indicators observed since YYYY. It is designed to be updated regularly and publicly available with the goal of establishing a convenient starting point for empirical analysis that requires "big data".
+=======
 This paper describes large-scale Australian macroeconomic databases in the monthly and quarterly frequency. The dataset contains hundreds of Australian and international economic indicators observed since YYYY. It is designed to be updated regularly and publicly available with the goal of establishing a convenient starting point for empirical analysis that requires "big data", such as forecasting, nowcasting, and structural analysis.
+>>>>>>> 9319557b5278283df73641b8fd2b407d776f7193:documents/DatabasePaper.qmd
 
 # Key papers:
+
 FRED monthly paper: https://files.stlouisfed.org/files/htdocs/wp/2015/2015-012.pdf
+
 FRED quarterly paper: https://www.nber.org/system/files/working_papers/w26872/w26872.pdf
-Canadian paper: https://www.econstor.eu/bitstream/10419/234782/1/esg-uqam-dt2018-27.pdf 
-Australian paper: https://www.sciencedirect.com/science/article/abs/pii/S0169207019300056?via%3Dihub can also access at https://robjhyndman.com/papers/ausmacrofcastR2.pdf 
-Old Australian paper: https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1467-8454.2010.00386.x 
+
+Canadian paper: https://www.econstor.eu/bitstream/10419/234782/1/esg-uqam-dt2018-27.pdf
+
+Australian paper: https://www.sciencedirect.com/science/article/abs/pii/S0169207019300056?via%3
+
+Dihub can also access at https://robjhyndman.com/papers/ausmacrofcastR2.pdf
+
+Old Australian paper: https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1467-8454.2010.00386.x
 
 # Introduction
 
-Large datasets are now very popular in the empirical macroeconomic research. Stock and Watson (2002a) have initiated the breakthrough by providing the econometric theory and simple methods to deal with a large amount of time series. Stock and Watson (2002b) have shown the benefits in terms of macroeconomic forecasting, while Bernanke et al. (2005) have inspired the literature on impulse response analysis in the so-called data-rich environment. Since then, many theoretical and empirical improvements have been made, see Stock and Watson (2016) for a recent overview. The most of the literature is built on the US datasets. Therefore, McCracken and Ng (2016) proposed a standardized version of a large monthly US dataset that is regularly updated and publicly available at the FRED (Federal Reserve Economic Data) website. No such developments have been made with Canadian macroeconomic data, so the objective of this work is to fill the gap and provide a user-friendly version of a large Canadian dataset suitable for many types of macroeconomic research.
+```         
+```
+
+Large datasets are now very popular in the empirical macroeconomic research. Stock and Watson (2002a) have initiated the breakthrough by providing the econometric theory and simple methods to deal with a large amount of time series. @stockwatson2002 Stock and Watson (2002b) have shown the benefits in terms of macroeconomic forecasting, while Bernanke et al. (2005) have inspired the literature on impulse response analysis in the so-called data-rich environment. Since then, many theoretical and empirical improvements have been made, see Stock and Watson (2016) for a recent overview. The most of the literature is built on the US datasets. Therefore, McCracken and Ng (2016) proposed a standardized version of a large monthly US dataset that is regularly updated and publicly available at the FRED (Federal Reserve Economic Data) website. No such developments have been made with Canadian macroeconomic data, so the objective of this work is to fill the gap and provide a user-friendly version of a large Canadian dataset suitable for many types of macroeconomic research.
 
 In this paper we construct a large-scale Canadian macroeconomic database in monthly frequency and show how it can be useful for empirical macroeconomic analysis with several illustrative examples. The dataset contains hundreds of Canadian and provincial economic indicators observed from 1981. It is designed to be updated regularly through the StatCan database and is publicly available. It relieves users to deal with data changes and methodological revisions. We provide a balanced and stationary panel suitable for work in business cycle fluctuations.
 
 Early attempts to construct large Canadian macroeconomic datasets are Gosselin and Tkacz (2001) and Galbraith and Tkacz (2007). Boivin et al. (2010) updated and merged data from those previous studies yielding a panel that covered the period 1969 - 2008 and had 348 monthly and 87 quarterly series. Then, Bedock and Stevanovic (2017) constructed a new dataset of 124 monthly variables observed from 1981 to 2012. The selection of series was based on Canadian counterparts of US series in Bernanke et al. (2005) and constrained by availability of StatCan tables. More recently, Sties (2017) has built a large quarterly dataset. Stephen Gordon has also been updating some relevant Canadian indicators1. Our data selection is mainly inspired by McCracken and Ng (2016) when it comes to major groups of economic variables. Given that Canada is a small open economy, we follow previous papers and add more series in the international trade group as one usually finds in the US applications.
 
+<<<<<<< HEAD:DatabasePaper.qmd
+=======
 # Literature
 
 
+>>>>>>> 9319557b5278283df73641b8fd2b407d776f7193:documents/DatabasePaper.qmd
 # Data
+
+asdfs
+
+Conclusion
+
+This paper introduces researchers to a set of x monthly macroeconomic variables based on the FRED database. The dataset starts in x and will be updated on a timely basis hereafter. Changes to the dataset will be documented in a log file, also available at xxxx. In addition to open public access, the main appeal of the dataset is that revisions and data changes are taken care of by the data specialists at FRED. We sincerely thank them for their support in this work.

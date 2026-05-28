@@ -5,6 +5,9 @@
 .httr-oauth
 .DS_Store
 .here
+__pycache__/
+.pytest_cache/
+.ruff_cache/
 
 # Large data files - regenerate via run_all.R
 data/raw/*.csv
@@ -23,3 +26,12 @@ documents/non_technical_summary.log
 
 # Training logs
 ml_training.log
+
+# Python exploratory notebook outputs
+Python/.venv/
+Python/.tabpfn_models/
+Python/outputs/*
+!Python/outputs/.gitkeep
+!Python/outputs/figures/
+Python/outputs/figures/*
+!Python/outputs/figures/.gitkeep

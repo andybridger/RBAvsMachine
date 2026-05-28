@@ -1,0 +1,41 @@
+[project]
+name = "rba-tfm"
+version = "0.1.0"
+description = "Exploratory tabular foundation model notebooks for the RBA forecasting project"
+readme = "README.md"
+authors = [
+    { name = "Joseph Paul", email = "73599839+J-R-Paul@users.noreply.github.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "ipykernel>=7.2.0",
+    "jupyter>=1.1.1",
+    "matplotlib>=3.10.9",
+    "numpy>=2.4.6",
+    "pandas>=3.0.3",
+    "polars>=1.41.1",
+    "pyarrow>=24.0.0",
+    "scikit-learn>=1.8.0",
+    "scipy>=1.17.1",
+    "seaborn>=0.13.2",
+    "tabpfn>=8.0.3",
+    "torch>=2.12.0",
+    "tqdm>=4.67.3",
+]
+
+[project.scripts]
+rba-tfm = "rba_tfm:main"
+
+[build-system]
+requires = ["uv_build>=0.11.6,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "mypy>=2.1.0",
+    "pytest>=9.0.3",
+    "ruff>=0.15.14",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

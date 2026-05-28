@@ -1,0 +1,11 @@
+ticker,series_name
+^AXJO,AUS ASX200
+^AORD,AUS All Ordinaries
+^GSPC,US S&P 500
+^N100,EU Euronext 100 Index
+^FTSE,UK FTSE 100 Index
+^N225,Japan Nikkei 225
+^KS11,Korea KOSPI Composite Index
+^HSI,Hong Kong Hang Seng Index
+000001.SS,Shanghai SSE Composite Index
+GC=F,Gold price

@@ -13,7 +13,7 @@ First, we need to download and install the packages required.
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 #download packages and install if needed
-list.of.packages <- c('data.table', 'tidyverse', 'lubridate', 'readabs', 'readrba', 'tsibble', 'ggridges', 'modelr', 'yardstick', "ggplot", "dplyr")
+list.of.packages <- c('data.table', 'tidyverse', 'lubridate', 'readabs', 'readrba', 'tsibble', 'ggridges', 'modelr', 'yardstick', "ggplot2", "dplyr")
 new.packages <- list.of.packages[!(list.of.packages 
       %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
@@ -24,16 +24,13 @@ library(p, character.only = TRUE)
 
 # Issues
 
-1. The double black line at the end of all the spaghetti charts - need to find out what is going on there. I think it is because the forecast period changes so sometimes the line skips a quarter and goes across to make it look like more lines. I think a solution could be to use unique dates for the second line.
+1.  The double black line at the end of all the spaghetti charts - need to find out what is going on there. I think it is because the forecast period changes so sometimes the line skips a quarter and goes across to make it look like more lines. I think a solution could be to use unique dates for the second line.
 
-2. Underlying inflation forecasts have changed throughout the years - should I add to the data series? We can easily add the equivalent data but then won't we run into issues with the Machine learning models (that is, they will be trying to learn different indicators). Is there a way to see how similar or different they are? Like a statistical test of some sorts.
+2.  Underlying inflation forecasts have changed throughout the years - should I add to the data series? We can easily add the equivalent data but then won't we run into issues with the Machine learning models (that is, they will be trying to learn different indicators). Is there a way to see how similar or different they are? Like a statistical test of some sorts.
 
-3. (SOLVED) Change charts to show the end of the forecast period and not stop at the end of the actual series.
+3.  (SOLVED) Change charts to show the end of the forecast period and not stop at the end of the actual series.
 
 ## Find data
-
-
-
 
 ```{r, echo = TRUE}
 # Load in RBA forecast data
@@ -105,6 +102,7 @@ eval_ur <- ur_errors %>%
     mae_value = mean(abs(forecast_value - actual_value))
   )
 ```
+
 ### Unemployment charts
 
 ```{r, echo = TRUE}
@@ -173,6 +171,7 @@ forecast_ur %>%
   labs(title = "Unemployment rate (RBA forecasts)") +
   xlim(as.Date("2020-01-01"), NA)
 ```
+
 ### Inflation data
 
 ```{r, echo = TRUE}
@@ -216,6 +215,7 @@ eval_cpi <- cpi_errors %>%
     mae_value = mean(abs(forecast_value - actual_value))
   )
 ```
+
 ### Inflation charts
 
 ```{r, echo = TRUE}
@@ -284,6 +284,7 @@ forecast_cpi %>%
   labs(title = "CPI (RBA forecasts)") +
   xlim(as.Date("2015-01-01"), NA)
 ```
+
 ### Underlying inflation data
 
 ```{r, echo = TRUE}
@@ -514,6 +515,7 @@ forecast_gdp %>%
 ```
 
 # Try other code
+
 ```{r, echo = TRUE}
 get_ur <- function(release_date = "latest",
                    series_id = "A84423050A") {

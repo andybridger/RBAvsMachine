@@ -71,9 +71,9 @@ The underlying inflation (sometimes called 'core' inflation) indicator has chang
 
 Detailed explanatory notes on the data can be found in [Appendix B](https://www.rba.gov.au/publications/rdp/2012/pdf/rdp2012-07.pdf#page=38 "Link, opening in a new window, to PDF file.") of Tulip and Wallace (2012), Estimates of Uncertainty around the RBA's Forecasts, RBA Research Discussion Paper, RDP2012-07. There research found the RBA forecasts have substantial explanatory power for the inflation rate but not for GDP growth.
 
-[Box C: What explains recent inflation forecast errors?](https://www.rba.gov.au/publications/smp/2022/nov/box-c-what-explains-recent-inflation-forecast-errors.html)
+[Box C: What explains recent inflation forecast errors?](https://www.rba.gov.au/publications/smp/2022/nov/box-c-what-explains-recent-inflation-forecast-errors.html) to provide context in the introduction on forecasts
 
-[Review of the Reserve Bank of Australia](https://rbareview.gov.au/final-report)
+[Review of the Reserve Bank of Australia](https://rbareview.gov.au/final-report) to provide context in the introduction on forecasts
 
 # Method
 

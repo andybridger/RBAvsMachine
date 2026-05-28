@@ -1,0 +1,51 @@
+---
+title: "Can Computers Outforecast the Reserve Bank?"
+subtitle: "A Non-Technical Summary"
+author: "Andrew Bridger and Joe Paul"
+date: "2025"
+output:
+  pdf_document:
+    latex_engine: pdflatex
+    includes:
+      in_header: header.tex
+fontsize: 12pt
+geometry: margin=1in
+linestretch: 1.5
+---
+
+# What We Did
+
+Every quarter, the Reserve Bank of Australia (RBA) publishes forecasts for inflation, economic growth, and unemployment. These forecasts help determine interest rates and shape government policy. But how accurate are they, and could a computer do better?
+
+To answer this question, we assembled a database of 487 economic indicators---covering everything from consumer prices and wages to commodity prices and share market indices---and used machine learning algorithms to produce competing forecasts. We then compared the accuracy of these computer-generated forecasts against the RBA's published projections over the period from 1993 to 2025.
+
+We tested seven different forecasting approaches, ranging from simple methods (such as assuming that next quarter's inflation will equal this quarter's) to more sophisticated machine learning techniques that can sift through hundreds of indicators simultaneously to identify patterns.
+
+# What We Found
+
+The short answer is: it depends on how far ahead you are trying to forecast.
+
+**The RBA does well in the short run.** For headline inflation one to two quarters ahead, no machine learning model could beat the RBA. This is not surprising. The RBA has access to private intelligence---from business surveys, internal models, and direct engagement with firms and households---that no publicly available dataset can replicate. This gives the Bank a genuine advantage when forecasting what will happen in the next three to six months.
+
+**Computers do better at longer horizons.** When we extend the forecast horizon to one to two years, the picture reverses. Machine learning models---particularly those based on decision-tree ensembles---outperformed the RBA for both headline and underlying inflation. The best-performing algorithm was 21 per cent more accurate than the RBA for headline inflation at the two-year horizon, and 34 per cent more accurate for underlying inflation.
+
+Why might this be? One explanation is that the RBA is not just forecasting inflation---it is actively trying to control it. The Bank sets interest rates to push inflation back toward its 2--3 per cent target. Its longer-horizon forecasts may therefore partly reflect where it *wants* inflation to be, rather than where the data suggest it is heading. When persistent forces push inflation away from target for an extended period---as happened after the pandemic---the RBA's forecasts can be systematically wrong for years, while algorithms that simply follow the data may be quicker to adjust.
+
+**GDP growth is very hard to predict.** For economic growth, neither the RBA nor any machine learning method could consistently predict what would happen beyond the current quarter. This confirms a long-standing finding in economics: quarterly GDP growth is, for practical purposes, unpredictable.
+
+**A simple rule works well for unemployment.** For the unemployment rate, a very simple forecasting rule---assuming that next quarter's unemployment will be close to this quarter's---proved remarkably effective, outperforming both the RBA and more complex machine learning methods, especially in the short run.
+
+# What This Means
+
+These findings do not imply that the RBA should be replaced by a computer. Central bank forecasts serve important purposes beyond point prediction: they communicate the Bank's view of the economy, guide financial markets, and provide a framework for policy discussion. An algorithm cannot do any of these things.
+
+However, the results do suggest that machine learning methods could usefully complement the RBA's existing forecasting framework. When a computer algorithm and the RBA disagree---particularly at longer horizons---this divergence could serve as an early warning that the Bank's assumptions deserve closer scrutiny. The 2023 Review of the Reserve Bank recommended exactly this kind of analytical diversification.
+
+Perhaps the most sobering finding is that *all* methods---human and machine alike---performed poorly during the COVID-19 pandemic. This was a period of unprecedented economic disruption, and no forecasting approach was prepared for it. The lesson is not that better algorithms can eliminate forecast uncertainty, but that forecast uncertainty is a fundamental feature of economic life that policymakers and the public should take more seriously.
+
+\vfill
+
+\noindent\rule{\textwidth}{0.4pt}
+
+\small
+\noindent *This is a non-technical summary of "RBA vs Machine: Can Algorithms Outforecast the Central Bank?" by Andrew Bridger and Joe Paul. The full paper, code, and data are available at* [github.com/andybridger/RBAvsMachine](https://github.com/andybridger/RBAvsMachine).

@@ -1,5 +1,25 @@
 .Rproj.user
-R/.Rhistory
-R/.RData
+.Rhistory
+.RData
+.Ruserdata
 .httr-oauth
 .DS_Store
+.here
+
+# Large data files - regenerate via run_all.R
+data/raw/*.csv
+data/output/
+R/df_data.rds
+
+# Personal reference papers
+5891407.pdf
+ssrn_id4715123_code6476447.pdf
+
+# LaTeX intermediates (keep header.tex)
+documents/RBAvsMachine.tex
+documents/non_technical_summary.tex
+documents/*_files/
+documents/non_technical_summary.log
+
+# Training logs
+ml_training.log

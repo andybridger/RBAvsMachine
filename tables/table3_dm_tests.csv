@@ -1,0 +1,85 @@
+target,horizon,model,dm_stat,dm_pvalue,n_obs,sig
+CPI Inflation,1,AR(1),-1.89,0.059,123,*
+CPI Inflation,1,Elastic Net,-3.99,0,123,***
+CPI Inflation,1,Historical Mean,-13.76,0,123,***
+CPI Inflation,1,LASSO,-3.73,0,123,***
+CPI Inflation,1,Random Forest,-4.69,0,123,***
+CPI Inflation,1,Ridge,-5.35,0,123,***
+CPI Inflation,1,XGBoost,-5.46,0,123,***
+CPI Inflation,4,AR(1),-1.51,0.132,122,
+CPI Inflation,4,Elastic Net,-0.9,0.367,122,
+CPI Inflation,4,Historical Mean,-4.68,0,122,***
+CPI Inflation,4,LASSO,-1.1,0.27,122,
+CPI Inflation,4,Random Forest,-0.05,0.964,122,
+CPI Inflation,4,Ridge,-2.84,0.005,122,***
+CPI Inflation,4,XGBoost,-0.63,0.53,122,
+CPI Inflation,8,AR(1),-2.25,0.024,72,**
+CPI Inflation,8,Elastic Net,-1.28,0.2,72,
+CPI Inflation,8,Historical Mean,-2.29,0.022,72,**
+CPI Inflation,8,LASSO,-1.43,0.154,72,
+CPI Inflation,8,Random Forest,0.8,0.426,72,
+CPI Inflation,8,Ridge,-1.57,0.117,72,
+CPI Inflation,8,XGBoost,0.56,0.576,72,
+GDP Growth,1,AR(1),0.1,0.924,124,
+GDP Growth,1,Elastic Net,0.3,0.765,124,
+GDP Growth,1,Historical Mean,0.3,0.765,124,
+GDP Growth,1,LASSO,0.3,0.765,124,
+GDP Growth,1,Random Forest,-0.86,0.387,124,
+GDP Growth,1,Ridge,-1.34,0.18,124,
+GDP Growth,1,XGBoost,-1.06,0.29,124,
+GDP Growth,4,AR(1),1.3,0.192,122,
+GDP Growth,4,Elastic Net,1.29,0.197,122,
+GDP Growth,4,Historical Mean,1.29,0.197,122,
+GDP Growth,4,LASSO,1.25,0.211,122,
+GDP Growth,4,Random Forest,0.89,0.375,122,
+GDP Growth,4,Ridge,-1.24,0.216,122,
+GDP Growth,4,XGBoost,0.69,0.489,122,
+GDP Growth,8,AR(1),1.48,0.139,77,
+GDP Growth,8,Elastic Net,1.54,0.124,77,
+GDP Growth,8,Historical Mean,1.54,0.124,77,
+GDP Growth,8,LASSO,1.54,0.124,77,
+GDP Growth,8,Random Forest,0.69,0.488,77,
+GDP Growth,8,Ridge,-2.78,0.005,77,***
+GDP Growth,8,XGBoost,0.9,0.368,77,
+Underlying Inflation,1,AR(1),4.05,0,123,***
+Underlying Inflation,1,Elastic Net,-3.26,0.001,123,***
+Underlying Inflation,1,Historical Mean,-12.28,0,123,***
+Underlying Inflation,1,LASSO,-3.85,0,123,***
+Underlying Inflation,1,Random Forest,-3.86,0,123,***
+Underlying Inflation,1,Ridge,-1.66,0.097,123,*
+Underlying Inflation,1,XGBoost,-3.93,0,123,***
+Underlying Inflation,4,AR(1),0.75,0.454,122,
+Underlying Inflation,4,Elastic Net,-1.16,0.246,122,
+Underlying Inflation,4,Historical Mean,-3.61,0,122,***
+Underlying Inflation,4,LASSO,-1.48,0.139,122,
+Underlying Inflation,4,Random Forest,-0.18,0.861,122,
+Underlying Inflation,4,Ridge,-1.8,0.071,122,*
+Underlying Inflation,4,XGBoost,-0.87,0.386,122,
+Underlying Inflation,8,AR(1),-1.32,0.188,74,
+Underlying Inflation,8,Elastic Net,-1.12,0.262,74,
+Underlying Inflation,8,Historical Mean,-1.24,0.215,74,
+Underlying Inflation,8,LASSO,-1.2,0.232,74,
+Underlying Inflation,8,Random Forest,0.87,0.382,74,
+Underlying Inflation,8,Ridge,-1.64,0.101,74,
+Underlying Inflation,8,XGBoost,0.71,0.48,74,
+Unemployment Rate,1,AR(1),2.21,0.027,125,**
+Unemployment Rate,1,Elastic Net,-5.41,0,125,***
+Unemployment Rate,1,Historical Mean,-10.54,0,125,***
+Unemployment Rate,1,LASSO,-3.01,0.003,125,***
+Unemployment Rate,1,Random Forest,-3.79,0,125,***
+Unemployment Rate,1,Ridge,-7.85,0,125,***
+Unemployment Rate,1,XGBoost,-3.97,0,125,***
+Unemployment Rate,4,AR(1),1.31,0.192,123,
+Unemployment Rate,4,Elastic Net,-2.38,0.017,123,**
+Unemployment Rate,4,Historical Mean,-3.74,0,123,***
+Unemployment Rate,4,LASSO,-2.8,0.005,123,***
+Unemployment Rate,4,Random Forest,-1.9,0.058,123,*
+Unemployment Rate,4,Ridge,-1.95,0.052,123,*
+Unemployment Rate,4,XGBoost,-2.26,0.024,123,**
+Unemployment Rate,8,AR(1),0.27,0.788,75,
+Unemployment Rate,8,Elastic Net,-0.83,0.405,75,
+Unemployment Rate,8,Historical Mean,-3.48,0.001,75,***
+Unemployment Rate,8,LASSO,-0.83,0.409,75,
+Unemployment Rate,8,Random Forest,-0.84,0.402,75,
+Unemployment Rate,8,Ridge,-1.5,0.134,75,
+Unemployment Rate,8,XGBoost,-0.96,0.335,75,

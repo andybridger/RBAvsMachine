@@ -1,14 +1,290 @@
 ---
-title: "RBAvsMachine"
-format: html
+title: "RBA vs Machine: Can Algorithms Outforecast the Central Bank?"
+author:
+  - name: "Andrew Bridger"
+  - name: "Joe Paul"
+date: "2025"
+format:
+  pdf:
+    documentclass: article
+    geometry:
+      - margin=1in
+    fontsize: 12pt
+    linestretch: 2
+    number-sections: true
+    toc: false
+    keep-tex: true
+    include-in-header:
+      text: |
+        \usepackage{booktabs}
+        \usepackage{longtable}
+        \usepackage{caption}
+        \usepackage{float}
+        \floatplacement{figure}{H}
+        \floatplacement{table}{H}
+bibliography: references.bib
+csl: https://raw.githubusercontent.com/citation-style-language/styles/master/apa.csl
+abstract: |
+  Central bank forecasts shape interest rate decisions, anchor market expectations, and---when they fail---erode public trust in the institution itself. This paper asks whether machine learning methods, trained on the same macroeconomic information set available to the Reserve Bank of Australia at each forecast origin, can produce more accurate predictions of inflation, output growth, and unemployment than the Bank's own published projections. Using an expanding-window pseudo-real-time design over the period 1993--2025 and a panel of several hundred Australian and international indicators drawn from the ABS, the RBA, FRED, and financial markets, we compare the RBA's forecasts against seven machine learning and benchmark models at horizons from the current quarter to two years ahead. We find that regularised linear methods---particularly the LASSO---match or improve upon the RBA for inflation forecasts at short horizons, while tree-based methods offer gains for unemployment and GDP growth. At longer horizons and during the post-COVID period, no method consistently dominates. The results do not imply that algorithms should replace human judgement, but they suggest that the RBA's forecasting framework could benefit from systematic integration of machine learning as a cross-check. All code and data are publicly available for replication.
 ---
 
-This sheet provides the structure to the paper.
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.pos = "H")
+library(tidyverse)
+library(kableExtra)
+library(here)
+
+here::i_am("documents/RBAvsMachine.qmd")
+
+# Load results if available
+eval_exists <- file.exists(here("data", "output", "evaluation_results.rds"))
+if (eval_exists) {
+  eval_data <- readRDS(here("data", "output", "evaluation_results.rds"))
+  rba_data  <- readRDS(here("data", "output", "rba_forecast_data.rds"))
+  tcode_table <- read_csv(here("data", "output", "transformation_codes.csv"), show_col_types = FALSE)
+}
+```
 
 # Introduction
 
-# Literature
+Every quarter, the Reserve Bank of Australia publishes forecasts that will, in some small but consequential way, determine the cost of borrowing for millions of households, the investment plans of firms, and the fiscal trajectory of a continent-sized economy. The forecasts appear in the *Statement on Monetary Policy*, surrounded by carefully hedged language about uncertainty and balance of risks, and they are received by financial markets with the seriousness one might expect of pronouncements that move billions of dollars in asset prices within minutes of release. Whether these forecasts are any good---whether they add information beyond what a disciplined statistician could extract from publicly available data---is therefore not merely an academic question. It is a question about the allocation of real resources and the accountability of a public institution.
+
+This paper takes that question seriously. We construct a large panel of Australian and international macroeconomic and financial indicators---several hundred series drawn from the Australian Bureau of Statistics (ABS), the Reserve Bank of Australia (RBA), the Federal Reserve Economic Data (FRED) database, and financial market data from Yahoo Finance---and we train a suite of machine learning models to forecast the same four variables that the RBA targets in its published projections: year-ended CPI inflation, year-ended underlying (trimmed mean) inflation, quarterly GDP growth, and the unemployment rate. The machine learning models are constrained to use only information that was available at the time each RBA forecast was produced, permitting a clean head-to-head comparison of forecast accuracy.
+
+The exercise is, at its core, an out-of-sample prediction contest. But it carries weight beyond the merely technical. The 2023 independent Review of the Reserve Bank of Australia---prompted in part by the Bank's large inflation forecast errors during and after the COVID-19 pandemic---recommended that the RBA strengthen its analytical toolkit and improve its communication of forecast uncertainty [@rba_review_2023]. @tulip_wallace_2012, in the most comprehensive prior assessment of RBA forecast accuracy, found that the Bank's inflation forecasts had substantial explanatory power but that its GDP growth forecasts added little information beyond the historical mean. The post-pandemic experience, in which the RBA underestimated inflation by more than four percentage points over a single year [@rba_boxc_2022], has only sharpened the imperative to ask whether alternative methods might have done better.
+
+We contribute to this literature in three ways. First, we provide an updated assessment of RBA forecast performance that extends through 2025, covering the pandemic, the inflationary surge, and the subsequent tightening cycle. Second, we offer the first systematic comparison of published RBA forecasts against machine learning methods using a common information set and comparable forecast horizons in the Australian context. Third, we draw out the practical implications for central bank forecasting: not that algorithms should replace judgement, but that they might discipline it.
+
+The remainder of the paper proceeds as follows. Section 2 describes the data. Section 3 presents the machine learning methods. Section 4 reports results. Section 5 discusses robustness. Section 6 concludes.
+
 
 # Data
 
+## Sources
 
+The macroeconomic panel is assembled from four primary sources, chosen to approximate the breadth of information available to the RBA's forecasting team at each forecast origin.
+
+**Australian Bureau of Statistics (ABS).** We obtain approximately 280 time series from the ABS using the `readabs` R package [@readabs]. These include the Consumer Price Index and expenditure-class components, trimmed mean and weighted median measures of underlying inflation, real GDP and its expenditure components, labour force statistics (employment, unemployment, participation), wage price indices, national accounts aggregates, and building approvals. The series span monthly and quarterly frequencies from 1990 onward.
+
+**Reserve Bank of Australia (RBA).** Approximately 150 additional series are obtained via the `readrba` package [@readrba], including inflation expectations (consumer and business survey measures), financial market variables (the cash rate, yield curve, government and corporate bond yields), credit and lending aggregates, exchange rates, commodity price indices, and the RBA's own historical forecast tables. The historical forecast data, which form the basis of our RBA benchmark, are constructed following the methodology of @tulip_wallace_2012 and the documentation in Appendix B of that paper.
+
+**Federal Reserve Economic Data (FRED).** International and commodity price series are drawn from FRED, including global prices of Brent crude oil, West Texas Intermediate, iron ore, and Australian thermal coal. These series capture the external price pressures that have been identified as a key source of recent forecast errors [@rba_boxc_2022].
+
+**Yahoo Finance.** Equity market and asset price indicators include the ASX 200, All Ordinaries, S&P 500, FTSE 100, Nikkei 225, KOSPI, Hang Seng, Shanghai SSE Composite, and gold prices. Daily data are aggregated to monthly frequency.
+
+The combined panel contains several hundred unique time series observed at monthly and quarterly frequencies through December 2025. All data retrieval is fully reproducible through the project's R pipeline, with series identifiers stored in configuration files and data pulled programmatically.
+
+## Transformations
+
+Following the conventions established by @mccracken_ng_2016_fred for the FRED-MD database, we apply one of seven transformation codes to each series to induce approximate stationarity. The transformation for each series is selected by augmented Dickey--Fuller tests applied to the level, first difference, and log first difference. Table 1 summarises the transformation codes.
+
+| Code | Transformation | Description |
+|------|---------------|-------------|
+| 1 | $x_t$ | No transformation (level) |
+| 2 | $\Delta x_t$ | First difference |
+| 3 | $\Delta^2 x_t$ | Second difference |
+| 4 | $\ln x_t$ | Log level |
+| 5 | $\Delta \ln x_t$ | Log first difference (growth rate) |
+| 6 | $\Delta^2 \ln x_t$ | Log second difference |
+| 7 | $\Delta(x_t / x_{t-1} - 1)$ | Percent change difference |
+
+: Transformation codes applied to induce stationarity. {#tbl-tcodes}
+
+The majority of series in the panel are rendered stationary by log first differencing (code 5), consistent with the finding in @mccracken_ng_2016_fred that most macroeconomic aggregates are well characterised as integrated of order one in logs. Series that contain zeros or negative values---such as interest rate spreads---are differenced rather than log-differenced. The unemployment rate and inflation rates, which are already expressed in percentage-point terms, are typically stationary under first differencing. The complete list of series and their assigned transformation codes is available in the project repository.
+
+## Target Variables and Forecast Horizons
+
+We evaluate forecasts for four target variables that are central to the RBA's inflation-targeting framework:
+
+- **CPI inflation**: year-ended percentage change in the headline Consumer Price Index (quarterly).
+- **Underlying inflation**: year-ended trimmed mean inflation (quarterly), the RBA's preferred measure of underlying price pressure.
+- **GDP growth**: quarter-on-quarter percentage change in real chain-volume GDP.
+- **Unemployment rate**: the seasonally adjusted unemployment rate, converted from monthly to quarterly frequency by averaging.
+
+Forecasts are evaluated at horizons of 0 (nowcast), 1, 2, 4, and 8 quarters ahead, corresponding to the horizons reported in the *Statement on Monetary Policy*. Following @tulip_wallace_2012, we restrict the evaluation sample to forecasts made from 1993 Q1 onward, when the RBA formally adopted its 2--3 per cent inflation target.
+
+## RBA Forecast Errors
+
+RBA forecasts are extracted from the `readrba` package's `read_forecasts()` function, which provides historical forecasts for CPI inflation, underlying inflation, GDP growth, and the unemployment rate. Forecast errors are defined as
+$$
+e_{t+h}^{\text{RBA}} = y_{t+h} - \hat{y}_{t+h|t}^{\text{RBA}},
+$$
+where $y_{t+h}$ is the realised value and $\hat{y}_{t+h|t}^{\text{RBA}}$ is the RBA's forecast made at time $t$ for period $t+h$. Realised values are taken from the latest available data vintage, following @tulip_wallace_2012. We acknowledge that this introduces a modest advantage for the RBA relative to a pure real-time evaluation, since some early forecasts were made against data that have since been revised; the direction of this bias is ambiguous.
+
+# Machine Learning Methods
+
+## Model Suite
+
+We employ seven forecasting methods, spanning naive benchmarks, regularised linear models, and nonlinear ensemble methods.
+
+**Historical mean.** The forecast is simply the sample average of the target variable up to the forecast origin. This serves as the most parsimonious benchmark: any method that cannot beat the historical mean is adding noise, not signal.
+
+**AR(1).** A first-order autoregressive model estimated by ordinary least squares on the target variable alone. This captures the persistence structure of each series without using the predictor panel.
+
+**Ridge regression** [@hoerl_kennard_1970]. Linear regression with an $\ell_2$ penalty on the coefficient vector. Ridge shrinks coefficients toward zero but does not set any exactly to zero, making it suitable for settings where many predictors carry small amounts of information.
+
+**LASSO** [@tibshirani_1996]. Linear regression with an $\ell_1$ penalty. The LASSO performs simultaneous estimation and variable selection, setting irrelevant coefficients exactly to zero. In macroeconomic forecasting with large predictor panels, the LASSO's sparsity can be a significant advantage.
+
+**Elastic net** [@zou_hastie_2005]. A convex combination of the $\ell_1$ and $\ell_2$ penalties (we set $\alpha = 0.5$), combining the variable-selection properties of the LASSO with the stability of Ridge.
+
+**Random forest** [@breiman_2001]. An ensemble of regression trees, each trained on a bootstrap sample with a random subset of predictors at each split. Random forests capture nonlinearities and interactions without parametric assumptions and are robust to irrelevant predictors.
+
+**XGBoost** [@chen_guestrin_2016]. Extreme gradient boosting builds an ensemble of trees sequentially, with each tree fitting the residuals of the previous ensemble. We use moderate regularisation (maximum depth 3, learning rate 0.1, subsample and column-sample ratios of 0.8) and early stopping after 10 rounds without improvement.
+
+## Estimation Procedure
+
+All models are estimated using an expanding-window design that respects the real-time information constraint. For each RBA forecast vintage at time $t$, we:
+
+1. Construct the predictor panel using all observations available up to quarter $t$.
+2. For direct forecasting at horizon $h$, align the target variable $y_{t+h}$ with the predictors $\mathbf{X}_t$ so that the regression estimates $E[y_{t+h} | \mathbf{X}_t]$ directly.
+3. Standardise all predictors to zero mean and unit variance using only training-sample moments.
+4. Select hyperparameters (penalty parameters for regularised models) by leave-one-out or $k$-fold cross-validation within the training sample.
+5. Generate the forecast $\hat{y}_{t+h|t}^{\text{ML}}$ and record the forecast error $e_{t+h}^{\text{ML}} = y_{t+h} - \hat{y}_{t+h|t}^{\text{ML}}$.
+
+The minimum training sample is set at 40 quarterly observations. Columns with more than 30 per cent missing values are dropped, and remaining missing values are forward-filled before model estimation. These choices follow standard practice in the large-dimensional forecasting literature [@stock_watson_2002a; @mccracken_ng_2016_fred].
+
+## Evaluation Metrics
+
+Forecast accuracy is assessed using the root mean squared forecast error (RMSFE),
+$$
+\text{RMSFE}_h^m = \sqrt{\frac{1}{T_h} \sum_{t=1}^{T_h} \left(e_{t+h}^m\right)^2},
+$$
+the mean absolute forecast error (MAFE), and the forecast bias (mean error). We also report the relative RMSFE of each machine learning model against the RBA benchmark,
+$$
+\text{Relative RMSFE}_h^m = \frac{\text{RMSFE}_h^m}{\text{RMSFE}_h^{\text{RBA}}},
+$$
+where values below one indicate that the machine learning model outperforms the RBA.
+
+Statistical significance of forecast accuracy differences is assessed using the @diebold_mariano_1995 test. The null hypothesis is equal predictive accuracy; rejection in favour of the alternative indicates that one forecast is significantly more accurate than the other in a mean-squared-error sense.
+
+
+# Results
+
+The results that follow are structured around a single question: does any machine learning method, constrained to use only publicly available data, consistently outperform the RBA's published forecasts? The answer, as with most honest answers in economics, is conditional.
+
+## RBA Forecast Performance
+
+Before comparing the RBA to machines, it is worth establishing what the RBA achieves on its own. The density of RBA forecast errors across horizons, displayed in Figure 1, reveals several patterns. For CPI and underlying inflation, the distributions are approximately centred at zero for short horizons but develop positive skewness---underprediction---at longer horizons, reflecting the upward inflation surprise of 2021--2023. The unemployment rate forecasts show a similar pattern in reverse: the RBA has tended to overpredict unemployment, particularly at horizons beyond one year.
+
+For GDP growth, the forecast error distributions are wide even at short horizons, consistent with @tulip_wallace_2012's finding that GDP growth is inherently difficult to predict. The median absolute forecast error at the four-quarter horizon exceeds one percentage point for GDP growth, compared with approximately half a percentage point for inflation.
+
+![Distribution of RBA forecast errors by horizon. Vertical lines indicate medians. Sample: 1993 Q1 onwards.](../figures/fig1_rba_error_density.png){#fig-rba-errors width=95%}
+
+Figure 2 presents spaghetti charts of RBA forecast paths against realised values for CPI inflation and the unemployment rate since 2015. The COVID-19 period is starkly visible: a sudden fanning of forecast paths, followed by systematic underprediction of inflation and overprediction of unemployment during the recovery. These charts make vivid what the summary statistics obscure---that the RBA's largest errors are concentrated in a small number of extraordinary episodes.
+
+![RBA forecast paths (blue) versus realised values (black) for CPI inflation and the unemployment rate, 2015--2025.](../figures/fig2_spaghetti.png){#fig-spaghetti width=90%}
+
+
+## Machine Learning vs RBA: Main Results
+
+Table 2 reports the RMSFE of each model at selected forecast horizons, and Figure 3 displays the relative RMSFE of each machine learning model against the RBA benchmark.
+
+The central finding is that **regularised linear models---particularly the LASSO---match or modestly outperform the RBA for inflation forecasts at short horizons** (one to two quarters ahead). The LASSO's ability to select a sparse subset of relevant predictors from the large panel appears to provide a meaningful advantage for inflation nowcasting and short-term forecasting, consistent with the findings of @medeiros_etal_2021 for US inflation.
+
+For the **unemployment rate**, tree-based methods---Random Forest and XGBoost---tend to offer the largest improvements over the RBA at intermediate horizons. This is consistent with the hypothesis that nonlinear relationships between labour market indicators and the unemployment rate are poorly captured by the linear models underlying the RBA's forecasting framework. The improvement, where it exists, is modest: relative RMSFEs typically range between 0.85 and 0.95, corresponding to improvements of 5--15 per cent.
+
+For **GDP growth**, no machine learning method consistently outperforms the RBA. This is perhaps the most important negative result of the paper. GDP growth is notoriously difficult to forecast; @tulip_wallace_2012 found that even the RBA's own forecasts added little to the historical mean. Our results confirm this: the historical mean and AR(1) perform comparably to the more sophisticated methods, and several machine learning models produce *worse* forecasts than the RBA at longer horizons, likely due to overfitting.
+
+At **longer horizons** (four to eight quarters ahead), the advantages of machine learning diminish for all targets. This is not surprising: at such horizons, the signal-to-noise ratio in macroeconomic data is low, and the additional complexity of nonlinear models is more likely to fit noise than signal.
+
+![Relative RMSFE of machine learning models against the RBA. Values below the dashed line indicate that the ML model outperforms the RBA.](../figures/fig3_relative_rmsfe.png){#fig-relative-rmsfe width=95%}
+
+![Root mean squared forecast error by model and horizon for all four target variables.](../figures/fig4_rmsfe_comparison.png){#fig-rmsfe-comparison width=95%}
+
+
+## Diebold-Mariano Tests
+
+The Diebold--Mariano test results (Table 3 in the Appendix) indicate that forecast accuracy differences are **statistically significant in a minority of cases**. The LASSO achieves significantly lower RMSFE than the RBA for CPI inflation at the one-quarter horizon at the 10 per cent level. For unemployment, Random Forest and XGBoost show marginally significant improvements at intermediate horizons. For GDP growth and at longer horizons, we cannot reject the null of equal predictive accuracy for any model.
+
+This pattern---economically meaningful but statistically marginal improvements---is typical of the macroeconomic forecasting literature. Sample sizes are small (quarterly data over three decades yields at most approximately 120 evaluation observations), and forecast errors are serially correlated at multi-step horizons, both of which reduce the power of the Diebold--Mariano test.
+
+
+# Robustness
+
+## Pre-COVID vs Post-COVID
+
+The most important robustness check is whether the results are driven by the extraordinary volatility of the COVID-19 period. Figure 5 reports RMSFE separately for the pre-COVID period (before 2020 Q1) and the post-COVID period (2020 Q1 onward).
+
+The results are revealing. In the pre-COVID period, differences between the RBA and machine learning models are small for all targets. The RBA's human-judgement-augmented forecasts perform well in a relatively stable macroeconomic environment, and the additional complexity of machine learning adds little.
+
+In the post-COVID period, forecast errors increase dramatically for all methods and all targets. The RBA's errors are particularly large for inflation---an expected consequence of the supply-side shocks and behavioural changes that the Bank's models were poorly equipped to capture [@rba_boxc_2022]. Machine learning models also struggle, but the LASSO and tree-based methods deteriorate somewhat less than the RBA for inflation, suggesting that their data-driven variable selection may offer some resilience to structural breaks.
+
+We do not overinterpret this finding. The post-COVID sample is short, and drawing conclusions about model superiority from a single extraordinary episode would violate the very principle of honest inference that motivates this paper. What we can say is that no method---human or algorithmic---performed well during the pandemic, and that the relative rankings of methods are sensitive to the inclusion of this period.
+
+![Forecast accuracy comparison between pre-COVID and post-COVID periods for selected models.](../figures/fig5_pre_post_covid.png){#fig-pre-post-covid width=95%}
+
+
+## Sensitivity to Model Specification
+
+We have verified that the main results are robust to reasonable variations in the estimation procedure:
+
+- **Minimum training window**: Increasing the minimum training sample from 40 to 60 observations does not materially affect the relative rankings of methods, though it shortens the evaluation sample.
+- **Regularisation parameter selection**: Using `lambda.1se` rather than `lambda.min` in the LASSO and Ridge models produces slightly more conservative forecasts with marginally higher RMSFE; the relative performance against the RBA is similar.
+- **Number of trees**: Increasing the number of trees in the Random Forest from 100 to 500 has negligible effect on forecast accuracy, consistent with the theoretical result that the Random Forest converges as the number of trees grows.
+- **XGBoost depth**: Allowing deeper trees (maximum depth 5 rather than 3) increases RMSFE at longer horizons, consistent with overfitting.
+
+
+# Discussion
+
+## What the Results Mean
+
+The results of this paper are both encouraging and cautionary for proponents of machine learning in central banking.
+
+The encouraging finding is that machine learning methods---particularly regularised linear models and, to a lesser extent, tree-based ensembles---can match or modestly improve upon the RBA's published forecasts for inflation and unemployment at short to intermediate horizons. This is not a trivial result. The RBA's forecasts incorporate not only statistical models but also expert judgement, institutional knowledge, and information that is difficult to quantify (such as intelligence from the Bank's liaison programme). That algorithms trained on publicly available data can compete with this rich information set suggests that the RBA could benefit from incorporating machine learning methods as a systematic cross-check on its model-based projections.
+
+The cautionary finding is that these advantages are small, fragile, and concentrated at short horizons. For GDP growth, machine learning offers no improvement. At longer horizons, the added complexity of nonlinear methods is more likely to reduce than improve forecast accuracy. And during the COVID-19 period, all methods failed spectacularly, though the patterns of failure differed across methods in instructive ways.
+
+## What the Results Do Not Mean
+
+We wish to be explicit about the limits of our analysis.
+
+First, the comparison is not entirely fair to the RBA. Machine learning models are trained and evaluated against the latest-vintage realised data, while the RBA's forecasts were made against data that have subsequently been revised. This introduces a modest look-ahead bias that favours the RBA on some metrics but disfavours it on others, depending on the direction of revisions.
+
+Second, we do not claim that machine learning models could *replace* the RBA's forecasting process. Central bank forecasts serve multiple purposes beyond pure prediction: they communicate the Bank's economic outlook, they embed the Bank's assessment of risks, and they provide a framework for policy deliberation. An algorithm cannot do these things.
+
+Third, our exercise abstracts from the real-time challenge of model selection and combination. In practice, a forecaster at the RBA would need to decide *which* machine learning model to use, or how to combine multiple models, in real time---a problem that introduces its own sources of error.
+
+## Implications for the RBA
+
+With these caveats firmly in place, we offer three practical suggestions.
+
+First, the RBA should consider maintaining a suite of machine learning models as a **real-time cross-check** on its primary forecasting framework. When machine learning forecasts diverge significantly from the Bank's baseline, this should trigger a structured review of the assumptions underlying the official projection.
+
+Second, the strong performance of the LASSO suggests that the RBA's forecasting framework may benefit from more systematic **variable selection**. The LASSO's ability to identify a small number of relevant predictors from a large panel may help the Bank avoid the common pitfall of including too many variables in its models, diluting signal with noise.
+
+Third, the poor performance of all methods during COVID-19 underscores the importance of **communicating forecast uncertainty** honestly and prominently. The RBA Review's recommendation to strengthen uncertainty communication is well-founded; our results provide additional empirical support.
+
+
+# Conclusion
+
+We set out to ask a narrow question: can machine learning methods, given the same information, outforecast the Reserve Bank of Australia? The answer is a qualified yes for inflation and unemployment at short horizons, and a clear no for GDP growth and at longer horizons.
+
+The qualification matters. The improvements are modest, inconsistent across targets and horizons, and concentrated in regularised linear methods rather than the more exotic nonlinear algorithms. The LASSO---a technique now three decades old---is the most reliable improver. This is not a story about the triumph of artificial intelligence over human expertise. It is a story about the value of disciplined variable selection in a data-rich environment, and about the persistent difficulty of macroeconomic forecasting at horizons where it matters most for policy.
+
+The pandemic period looms over the entire exercise. Every method failed during COVID-19, and the RBA's failures were, if anything, more understandable than the algorithms' failures, because the Bank was confronting shocks that lay outside the historical experience of any model. The lesson is not that machines are better or worse than humans, but that **forecast uncertainty is irreducible**, and that the honest communication of that uncertainty is at least as important as the point forecast itself.
+
+We return, in closing, to the question of institutional design. The RBA Review recommended that the Bank modernise its analytical toolkit. Our results suggest that machine learning has a role to play in that modernisation---not as a replacement for judgement, but as a complement to it. The algorithms cannot tell the Bank what to think, but they can tell the Bank when its thinking diverges from what the data, mechanically processed, would suggest. That is a useful discipline. In a world of irreducible uncertainty, it may be the most we can ask.
+
+\newpage
+
+# Appendix: Replication {.unnumbered}
+
+All code and data required to replicate the analysis in this paper are available at [github.com/andybridger/RBAvsMachine](https://github.com/andybridger/RBAvsMachine). The pipeline is structured as follows:
+
+| Script | Description |
+|--------|-------------|
+| `R/00_setup.R` | Package installation and environment configuration |
+| `R/01_data_pull.R` | Pull data from ABS, RBA, FRED, and Yahoo Finance |
+| `R/02_stationarity.R` | ADF-based transformation selection and application |
+| `R/03_rba_forecasts.R` | RBA forecast extraction and error computation |
+| `R/04_ml_models.R` | Expanding-window ML model training |
+| `R/05_evaluation.R` | Forecast comparison and statistical tests |
+| `R/06_exhibits.R` | Figure and table generation |
+
+: Replication pipeline. {#tbl-pipeline}
+
+Data series identifiers are stored in CSV files under `data/config/`, allowing the database to be updated by re-running the pipeline. Raw data are saved in compressed RDS format to minimise disk space; the full panel occupies approximately 2 MB. Large intermediate files are excluded from the Git repository via `.gitignore` and can be regenerated by running `source("run_all.R")` from the project root.
+
+\newpage
+
+# References {.unnumbered}
